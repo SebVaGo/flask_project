@@ -5,6 +5,12 @@ from app.config import Config, db
 
 from app.models.user_model import User 
 from app.models.password_model import Password
+from app.models.order_model import Order
+from app.models.product_model import Product
+from app.models.categoy_product_model import Category
+from app.models.client_tipe_model import ClientType
+from app.models.order_detail_model import OrderDetail
+
 
 from app.routers.user_router import user_bp
 from flask_bootstrap import Bootstrap

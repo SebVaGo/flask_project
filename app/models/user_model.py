@@ -14,6 +14,9 @@ class User(db.Model):
     status = db.Column(db.String(20), default="activo")
     fecha_creacion = db.Column(db.DateTime, default=datetime.utcnow)
     fecha_actualizacion = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    tipo_cliente_id = db.Column(db.Integer, db.ForeignKey("client_types.id"), nullable=False)
+    tipo_cliente = db.relationship("ClientType", backref="usuarios")
+
 
     def __repr__(self):
         return f"<User {self.correo}>"
