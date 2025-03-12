@@ -15,10 +15,11 @@ class AuthController:
                 resultado = AuthService.authenticate_user(correo, password)
 
                 if resultado["success"]:
-                    return jsonify({"success": True, "message": "Login exitoso"}), 200
+                    return AuthService.create_login_response(resultado["token"])
 
                 return jsonify({"success": False, "message": resultado["message"]}), 401
 
             return jsonify({"success": False, "errors": form.errors}), 400
 
+        # ✅ Si es GET, renderizar la página de login correctamente
         return render_template("login.html", form=form)
