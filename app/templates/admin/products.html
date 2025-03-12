@@ -44,7 +44,7 @@
 <script>
     function deleteProduct(productId) {
         if (confirm("¿Estás seguro de eliminar este producto?")) {
-            fetch(`/admin/products/${productId}`, { method: "DELETE" })
+            fetch(`/admin/products/${productId}`, { method: "DELETE", credentials: "include" })
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

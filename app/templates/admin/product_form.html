@@ -46,7 +46,8 @@
 
         fetch("{{ url_for('admin.create_product') }}", {
             method: "POST",
-            body: formData
+            body: formData,
+            credentials: "include"
         })
         .then(response => response.json())
         .then(data => {

@@ -41,7 +41,8 @@
 
         fetch("{{ url_for('auth.login') }}", {
             method: "POST",
-            body: formData
+            body: formData,
+            credentials: "include"
         })
         .then(response => response.json())
         .then(data => {
