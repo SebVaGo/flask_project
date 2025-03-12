@@ -13,6 +13,7 @@ from app.models.order_detail_model import OrderDetail
 
 
 from app.routers.user_router import user_bp
+from app.routers.login_router import login_bp
 from flask_bootstrap import Bootstrap
 from flask_wtf.csrf import CSRFProtect
 
@@ -27,6 +28,7 @@ def create_app():
     db.init_app(app)
 
     app.register_blueprint(user_bp, url_prefix="/")
+    app.register_blueprint(login_bp, url_prefix="/")
     csrf.init_app(app)
 
     migrate = Migrate(app, db) 

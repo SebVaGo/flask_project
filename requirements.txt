@@ -6,3 +6,4 @@ pymysql
 flask-wtf 
 email-validator
 flask-bootstrap
+PyJWT

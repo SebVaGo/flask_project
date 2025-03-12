@@ -1,0 +1,78 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Iniciar Sesión{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            <div class="card shadow p-4">
+                <h2 class="text-center mb-4">Iniciar Sesión</h2>
+
+                <div id="messages"></div>
+
+                <form id="loginForm">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.correo.label(class="form-label") }}
+                        {{ form.correo(class="form-control") }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control") }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary w-100 mb-2" onclick="submitLogin()">Ingresar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function submitLogin() {
+        let form = document.getElementById("loginForm");
+        let formData = new FormData(form);
+        let messagesDiv = document.getElementById("messages");
+
+        let csrfToken = formData.get("csrf_token");
+
+        messagesDiv.innerHTML = "";
+        document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+
+        fetch("{{ url_for('auth.login') }}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": csrfToken
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                messagesDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+            } else {
+                if (data.errors) {
+                    Object.keys(data.errors).forEach(field => {
+                        let input = document.querySelector(`[name="${field}"]`);
+                        if (input) {
+                            input.classList.add("is-invalid");
+                            input.nextElementSibling.innerText = data.errors[field].join(", ");
+                        }
+                    });
+                } else {
+                    messagesDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            messagesDiv.innerHTML = `<div class="alert alert-danger">Error interno del servidor.</div>`;
+        });
+    }
+</script>
+{% endblock %}
