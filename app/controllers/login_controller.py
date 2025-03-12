@@ -17,7 +17,7 @@ class AuthController(BaseController):
 
                 if resultado["success"]:
                     response = AuthService.create_login_response(resultado["token"])
-                    return redirect(RedirectService.get_redirect_url(resultado["user_type"]))
+                    return jsonify({"success": True, "redirect_url": RedirectService.get_redirect_url(resultado["user_type"])}), 200
 
                 return jsonify({"success": False, "message": resultado["message"]}), 401
 

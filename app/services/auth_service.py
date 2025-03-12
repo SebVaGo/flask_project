@@ -35,9 +35,8 @@ class RedirectService:
     def get_redirect_url(user_type):
         """Devuelve la URL de redirección según el tipo de usuario"""
         if user_type == 1:
-            return "/admin/dashboard"  # Simulación de ruta de administrador
-        
+            return url_for("admin.list_products")  
         elif user_type == 2:
-            return "/products"  # Simulación de ruta de productos
-        
-        return "/"
+            return url_for("products.list")  
+
+        return url_for("home.index")
