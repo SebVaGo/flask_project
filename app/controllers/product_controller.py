@@ -3,26 +3,22 @@ from app.services.product_service import ProductService
 from app.utils.forms.product_form import ProductForm
 from app.controllers.base_auth_controller import BaseController
 from flask_wtf.csrf import generate_csrf
+from app.utils.auth_decorator import require_authentication
 
 
-class ProductController(BaseController):
+class ProductController:
     @staticmethod
+    @require_authentication
     def list_products():
 
-        user = BaseController.get_authenticated_user()
-        if not user:
-            return jsonify({"success": False, "message": "No autorizado"}), 401       
-         
         """Lista todos los productos en la vista de administración"""
         products = ProductService.get_all_products()
         csrf_token = generate_csrf()  # 🔹 Generar el token CSRF en el backend
         return render_template("admin/products.html", products=products, csrf_token=csrf_token)
 
     @staticmethod
+    @require_authentication
     def new_product_form():
-        user = BaseController.get_authenticated_user()
-        if not user:
-            return jsonify({"success": False, "message": "No autorizado"}), 401
         
         """Muestra el formulario de creación de productos"""
         form = ProductForm()
@@ -33,10 +29,8 @@ class ProductController(BaseController):
         return render_template("admin/product_form.html", form=form)
 
     @staticmethod
+    @require_authentication
     def create_product():
-        user = BaseController.get_authenticated_user()
-        if not user:
-            return jsonify({"success": False, "message": "No autorizado"}), 401
     
         """Crea un nuevo producto"""
         form = ProductForm()
@@ -60,13 +54,8 @@ class ProductController(BaseController):
         return render_template("admin/product_form.html", form=form)
     
     @staticmethod
+    @require_authentication
     def delete_product(product_id):
-        """Elimina un producto (solo para usuarios autenticados)"""
-        print(f"Intentando eliminar el producto con ID: {product_id}")  # 🔹 DEBUG
-
-        user = ProductController.get_authenticated_user()
-        if not user:
-            return jsonify({"success": False, "message": "No autorizado"}), 401
 
         result = ProductService.delete_product(product_id)
         if result["success"]:
@@ -75,11 +64,8 @@ class ProductController(BaseController):
         return jsonify({"success": False, "message": result["message"]}), 400
     
     @staticmethod
+    @require_authentication
     def edit_product(product_id):
-        """Muestra el formulario de edición de productos"""
-        user = BaseController.get_authenticated_user()
-        if not user:
-            return jsonify({"success": False, "message": "No autorizado"}), 401
 
         product = ProductService.get_product_by_id(product_id)
         if not product:
