@@ -6,8 +6,10 @@ class ProductService:
     @staticmethod
     def get_all_categories():
         """Obtiene todas las categorías de productos"""
-        return Category.query.all()
-
+        categories = Category.query.all()
+        print("Categorías encontradas:", categories)  # 🔹 DEBUG
+        return categories
+    
     @staticmethod
     def create_product(data):
         categoria = Category.query.get(data["categoria_id"])
