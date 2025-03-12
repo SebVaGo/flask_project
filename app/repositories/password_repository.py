@@ -16,10 +16,10 @@ class PasswordRepository:
 
     @staticmethod
     def update_password(user_id, new_password_hash):
-        password = Password.query.filter_by(id_usuario=user_id).first()
-        if password:
-            password.password_hash = new_password_hash
-            db.session.commit()
-        return password
+        password_entry = Password.query.filter_by(id_usuario=user_id).first()
+        if password_entry:
+            password_entry.password_hash = new_password_hash
+            return True 
+        return False
     
     

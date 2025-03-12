@@ -1,6 +1,7 @@
 from werkzeug.security import generate_password_hash
 from app.repositories.user_repository import UserRepository
 from app.repositories.password_repository import PasswordRepository
+from app.config import db
 import logging
 
 class UserService: 
@@ -9,20 +10,15 @@ class UserService:
         try:
             if UserRepository.get_user_by_email(data["correo"]):
                 return {"success": False, "message": "El correo ya está en uso."}
-
+            
             password_hash = generate_password_hash(data.pop("password"))
 
-            user = UserRepository.create_user(data)
-            if not user:
-                return {"success": False, "message": "Error al registrar usuario."}
+            user = UserRepository.create_user_with_password(data, password_hash)
 
-            PasswordRepository.create_password(user.id, password_hash)
-
-            return {"success": True, "message": "Usuario registrado exitosamente."}
-
+            return {"success": True, "message": "Usuario registrado exitosamente"}
         except Exception as e:
             logging.error(f"Error inesperado en UserService: {str(e)}")
-            return {"success": False, "message": "Error interno del servidor."}
+            return {"success": False, "message": "Error interno del servidor"}
             
     @staticmethod
     def get_all_users():
@@ -47,21 +43,37 @@ class UserService:
             if not usuario:
                 return {"success": False, "message": "Usuario no encontrado."}, 404
 
+            # Verificar si el correo se quiere actualizar y no está en uso
             nuevo_correo = data.get("correo")
-            if nuevo_correo:
+            if nuevo_correo and nuevo_correo != usuario.correo:
                 usuario_existente = UserRepository.get_user_by_email(nuevo_correo)
                 if usuario_existente and usuario_existente.id != user_id:
                     return {"success": False, "message": "El correo ya está en uso por otro usuario."}, 400
 
-            if UserRepository.update_by_id(user_id, data):
+            # Extraer y eliminar la nueva contraseña del diccionario
+            nueva_password = data.pop("nueva_password", None)
+
+            # Iniciar la transacción manualmente
+            try:
+                actualizado = UserRepository.update_by_id(user_id, data)
+
+                # Si hay una nueva contraseña, actualizarla
+                if nueva_password:
+                    password_hash = generate_password_hash(nueva_password)
+                    if not PasswordRepository.update_password(user_id, password_hash):
+                        raise Exception("Error al actualizar la contraseña")
+
+                db.session.commit()  # Confirmar los cambios en la base de datos
                 return {"success": True, "message": "Usuario actualizado correctamente."}, 200
 
-            return {"success": False, "message": "No se pudo actualizar el usuario. Revisa los datos enviados."}, 400
+            except Exception as e:
+                db.session.rollback()  # Revertir cambios en caso de error
+                raise e  # Relanzar la excepción para que sea capturada en el `except` externo
 
         except Exception as e:
             logging.error(f"Error al actualizar usuario {user_id}: {e}")
             return {"success": False, "message": "Error interno del servidor."}, 500
-
+        
     @staticmethod
     def delete_user(user_id):
         try:

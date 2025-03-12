@@ -53,6 +53,11 @@
             <div class="invalid-feedback"></div>
         </div>
 
+        <div class="mb-3">
+            {{ form.nueva_password.label(class="form-label") }}
+            {{ form.nueva_password(class="form-control") }}
+        <div class="invalid-feedback"></div>
+
         <button type="submit" class="btn btn-success">Actualizar Usuario</button>
         <a href="{{ url_for('user.get_users') }}" class="btn btn-secondary">Cancelar</a>
     </form>

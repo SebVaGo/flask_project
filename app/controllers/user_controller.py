@@ -35,12 +35,13 @@ def get_users():
 
 def edit_user(user_id):
     user = UserService.get_user_by_id(user_id)
+    
     if not user:
         return jsonify({"success": False, "message": "Usuario no encontrado."}), 404
 
     form = UserUpdateForm(obj=user)
 
-    if request.method == "POST" and form.validate_on_submit():
+    if form.validate_on_submit():
         data = {key: value for key, value in form.data.items() if key not in ["submit", "csrf_token"]}
         resultado, status_code = UserService.actualizar_usuario(user_id, data)
         return jsonify(resultado), status_code
@@ -49,7 +50,6 @@ def edit_user(user_id):
         return jsonify({"success": False, "errors": form.errors}), 400
 
     return render_template("edit_user.html", user=user, form=form)
-
 def delete_user(user_id):
     resultado = UserService.delete_user(user_id)
     return jsonify(resultado), 200 if resultado["success"] else 400

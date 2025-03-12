@@ -50,4 +50,11 @@ class UserForm(BaseUserForm):
     submit = SubmitField("Registrar")
 
 class UserUpdateForm(BaseUserForm):
+    nueva_password = PasswordField("Contraseña", validators=[
+        DataRequired(message="La contraseña es obligatoria."),
+        Length(min=8, message="La contraseña debe tener al menos 8 caracteres."),
+        Regexp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)', 
+               message="La contraseña debe contener al menos una minúscula, una mayúscula y un número.")
+    ])
+        
     submit = SubmitField("Actualizar Usuario")
