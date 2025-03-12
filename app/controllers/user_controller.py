@@ -9,6 +9,11 @@ class CSRFForm(FlaskForm):
 
 def create_user():
     form = UserForm()
+    client_types = UserService.get_all_tipe_user()  # Obtener tipos de cliente
+
+    form.tipo_cliente_id.choices = [(tipo.id, tipo.nombre) for tipo in client_types]
+
+
 
     if request.method == "POST" and form.validate_on_submit():
         data = {key: value for key, value in form.data.items() if key not in ["submit", "csrf_token"]}
@@ -41,6 +46,9 @@ def edit_user(user_id):
 
     form = UserUpdateForm(obj=user)
 
+    client_types = UserService.get_all_tipe_user()
+    form.tipo_cliente_id.choices = [(tipo.id, tipo.nombre) for tipo in client_types]
+
     if form.validate_on_submit():
         data = {key: value for key, value in form.data.items() if key not in ["submit", "csrf_token"]}
         resultado, status_code = UserService.actualizar_usuario(user_id, data)
@@ -50,6 +58,7 @@ def edit_user(user_id):
         return jsonify({"success": False, "errors": form.errors}), 400
 
     return render_template("edit_user.html", user=user, form=form)
+
 def delete_user(user_id):
     resultado = UserService.delete_user(user_id)
     return jsonify(resultado), 200 if resultado["success"] else 400

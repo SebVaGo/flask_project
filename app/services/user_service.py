@@ -1,15 +1,30 @@
 from werkzeug.security import generate_password_hash
 from app.repositories.user_repository import UserRepository
 from app.repositories.password_repository import PasswordRepository
+from app.models.client_tipe_model import ClientType
 from app.config import db
 import logging
 
 class UserService: 
     @staticmethod
+    def get_all_tipe_user():
+        try:
+            return ClientType.query.all()
+        except Exception as e:
+            logging.error(f"Error al obtener tipos de usuario: {str(e)}")
+            return []
+
+    @staticmethod
     def create_user(data):
+        print("Datos recibidos en create_user:", data)  # DEBUG
+
         try:
             if UserRepository.get_user_by_email(data["correo"]):
                 return {"success": False, "message": "El correo ya está en uso."}
+            
+            tipo_cliente = ClientType.query.get(data["tipo_cliente_id"])
+            if not tipo_cliente:
+                return {"success": False, "message": "El tipo de cliente no existe"}       
             
             password_hash = generate_password_hash(data.pop("password"))
 
@@ -49,6 +64,12 @@ class UserService:
                 usuario_existente = UserRepository.get_user_by_email(nuevo_correo)
                 if usuario_existente and usuario_existente.id != user_id:
                     return {"success": False, "message": "El correo ya está en uso por otro usuario."}, 400
+                
+            # Verificar si el tipo de cliente existe
+            if "tipo_cliente_id" in data:
+                tipo_cliente = ClientType.query.get(data["tipo_cliente_id"])
+                if not tipo_cliente:
+                    return {"success": False, "message": "Tipo de cliente inválido."}, 400
 
             # Extraer y eliminar la nueva contraseña del diccionario
             nueva_password = data.pop("nueva_password", None)
