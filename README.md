@@ -1,4 +1,4 @@
-#Cración de entorno virtual 
+# Creación de entorno virtual 
 python -m venv venv
 venv\Scripts\activate #Windows
 
