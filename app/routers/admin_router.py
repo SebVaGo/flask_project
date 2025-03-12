@@ -11,3 +11,5 @@ admin_bp.route("/products/new", methods=["GET"])(ProductController.new_product_f
 
 # Ruta para crear un producto (POST)
 admin_bp.route("/products", methods=["POST"])(ProductController.create_product)
+
+admin_bp.route("/products/<int:product_id>/delete", methods=["DELETE"])(ProductController.delete_product)

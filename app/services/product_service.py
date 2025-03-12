@@ -31,3 +31,21 @@ class ProductService:
     def get_all_products():
         """Obtiene todos los productos"""
         return Product.query.join(Category).add_columns(Product.id, Product.nombre, Product.precio, Category.nombre.label("categoria")).all()
+
+    @staticmethod
+    def delete_product(product_id):
+        """Elimina un producto por su ID"""
+        product = Product.query.get(product_id)
+        if not product:
+            print(f"Producto con ID {product_id} no encontrado")  # 🔹 DEBUG
+            return {"success": False, "message": "Producto no encontrado"}
+
+        try:
+            db.session.delete(product)
+            db.session.commit()
+            return {"success": True, "message": "Producto eliminado exitosamente"}
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error eliminando producto: {e}")  # 🔹 DEBUG
+            return {"success": False, "message": "Error al eliminar el producto"}
+    

@@ -22,7 +22,7 @@ class AuthService:
         token = TokenHelper.generate_jwt(user.id, user.tipo_cliente_id)
 
         return {"success": True, "user_id": user.id, "token": token, "user_type": user.tipo_cliente_id}
-
+    
     @staticmethod
     def create_login_response(token):
         resp = make_response({"success": True, "message": "Login exitoso"})
