@@ -1,4 +1,3 @@
-
 {% extends "bootstrap/base.html" %}
 
 {% block title %}Registro de Usuario{% endblock %}
@@ -10,7 +9,13 @@
             <div class="card shadow p-4">
                 <h2 class="text-center mb-4">Registro de Usuario</h2>
 
-                <!-- Mensajes de éxito o error -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
                 <div id="messages"></div>
 
                 <form id="userForm">
@@ -58,7 +63,8 @@
                         <div class="invalid-feedback"></div>
                     </div>
 
-                    <button type="button" class="btn btn-primary w-100" onclick="submitForm()">Registrar</button>
+                    <button type="button" class="btn btn-primary w-100 mb-2" onclick="submitForm()">Registrar</button>
+                    <a href="{{ url_for('user.get_users') }}" class="btn btn-secondary w-100">Volver al Inicio</a>
                 </form>
             </div>
         </div>
@@ -67,47 +73,45 @@
 
 <script>
     function submitForm() {
-    let form = document.getElementById("userForm");
-    let formData = new FormData(form);
-    let messagesDiv = document.getElementById("messages");
+        let form = document.getElementById("userForm");
+        let formData = new FormData(form);
+        let messagesDiv = document.getElementById("messages");
 
-    let csrfToken = formData.get("csrf_token");
-    formData.delete("csrf_token"); 
+        let csrfToken = formData.get("csrf_token");
 
-    messagesDiv.innerHTML = "";
-    document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+        messagesDiv.innerHTML = "";
+        document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
 
-    fetch("{{ url_for('user.create_user') }}", {
-        method: "POST",
-        body: formData,
-        headers: {
-            "X-CSRFToken": csrfToken 
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            messagesDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-            form.reset(); 
-        } else {
-            if (data.errors) {
-                Object.keys(data.errors).forEach(field => {
-                    let input = document.querySelector(`[name="${field}"]`);
-                    if (input) {
-                        input.classList.add("is-invalid");
-                        input.nextElementSibling.innerText = data.errors[field].join(", ");
-                    }
-                });
-            } else {
-                messagesDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+        fetch("{{ url_for('user.create_user') }}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                "X-CSRFToken": csrfToken
             }
-        }
-    })
-    .catch(error => {
-        console.error("Error:", error);
-        messagesDiv.innerHTML = `<div class="alert alert-danger">Error interno del servidor.</div>`;
-    });
-}
-
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                messagesDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                form.reset(); 
+            } else {
+                if (data.errors) {
+                    Object.keys(data.errors).forEach(field => {
+                        let input = document.querySelector(`[name="${field}"]`);
+                        if (input) {
+                            input.classList.add("is-invalid");
+                            input.nextElementSibling.innerText = data.errors[field].join(", ");
+                        }
+                    });
+                } else {
+                    messagesDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                }
+            }
+        })
+        .catch(error => {
+            console.error("Error:", error);
+            messagesDiv.innerHTML = `<div class="alert alert-danger">Error interno del servidor.</div>`;
+        });
+    }
 </script>
 {% endblock %}

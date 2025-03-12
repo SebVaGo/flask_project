@@ -4,6 +4,14 @@
 <div class="container mt-4">
     <h2>Editar Usuario</h2>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    
     <div id="messages"></div>
 
     <form id="editUserForm" action="{{ url_for('user.edit_user', user_id=user.id) }}" method="POST">
@@ -72,8 +80,10 @@ document.getElementById("editUserForm").addEventListener("submit", function(even
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            alert("Usuario actualizado correctamente");
-            window.location.href = "{{ url_for('user.get_users') }}";
+            messagesDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+            setTimeout(() => {
+                window.location.href = "{{ url_for('user.get_users') }}";
+            }, 1500);
         } else {
             if (data.errors) {
                 Object.keys(data.errors).forEach(field => {
@@ -91,6 +101,13 @@ document.getElementById("editUserForm").addEventListener("submit", function(even
     .catch(error => {
         console.error("Error:", error);
         messagesDiv.innerHTML = `<div class="alert alert-danger">Error interno del servidor.</div>`;
+    });
+});
+
+document.querySelectorAll("#editUserForm input").forEach(input => {
+    input.addEventListener("input", function() {
+        this.classList.remove("is-invalid");
+        this.nextElementSibling.innerText = "";
     });
 });
 </script>

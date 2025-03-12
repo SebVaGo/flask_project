@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from app.config import Config, db
 
-from app.models.test_model import Test
 from app.models.user_model import User 
 from app.models.password_model import Password
 

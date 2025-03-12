@@ -6,26 +6,26 @@ import logging
 class UserService: 
     @staticmethod
     def create_user(data):
-        """Registra un usuario en la base de datos"""
         try:
             if UserRepository.get_user_by_email(data["correo"]):
                 return {"success": False, "message": "El correo ya está en uso."}
 
-            password_hash = generate_password_hash(data.pop("password"))  # 🔥 Hash de la contraseña
+            password_hash = generate_password_hash(data.pop("password"))
 
             user = UserRepository.create_user(data)
-            if user:
-                PasswordRepository.create_password(user.id, password_hash)
-                return {"success": True, "message": "Usuario registrado exitosamente."}
+            if not user:
+                return {"success": False, "message": "Error al registrar usuario."}
 
-            return {"success": False, "message": "Error al registrar usuario."}
+            PasswordRepository.create_password(user.id, password_hash)
+
+            return {"success": True, "message": "Usuario registrado exitosamente."}
+
         except Exception as e:
-            logging.error(f"Error al registrar usuario: {str(e)}")
+            logging.error(f"Error inesperado en UserService: {str(e)}")
             return {"success": False, "message": "Error interno del servidor."}
-
+            
     @staticmethod
     def get_all_users():
-        """Obtiene la lista de todos los usuarios"""
         try:
             return UserRepository.get_all_users()
         except Exception as e:
@@ -34,7 +34,6 @@ class UserService:
 
     @staticmethod
     def get_user_by_id(user_id):
-        """Obtiene un usuario por su ID"""
         try:
             return UserRepository.get_user_by_id(user_id)
         except Exception as e:
@@ -43,18 +42,28 @@ class UserService:
 
     @staticmethod
     def actualizar_usuario(user_id, data):
-        """Actualiza los datos de un usuario"""
         try:
+            usuario = UserRepository.get_user_by_id(user_id)
+            if not usuario:
+                return {"success": False, "message": "Usuario no encontrado."}, 404
+
+            nuevo_correo = data.get("correo")
+            if nuevo_correo:
+                usuario_existente = UserRepository.get_user_by_email(nuevo_correo)
+                if usuario_existente and usuario_existente.id != user_id:
+                    return {"success": False, "message": "El correo ya está en uso por otro usuario."}, 400
+
             if UserRepository.update_by_id(user_id, data):
-                return {"success": True, "message": "Usuario actualizado correctamente."}
-            return {"success": False, "message": "No se pudo actualizar el usuario."}
+                return {"success": True, "message": "Usuario actualizado correctamente."}, 200
+
+            return {"success": False, "message": "No se pudo actualizar el usuario. Revisa los datos enviados."}, 400
+
         except Exception as e:
-            logging.error(f"Error al actualizar usuario {user_id}: {str(e)}")
-            return {"success": False, "message": "Error interno del servidor."}
+            logging.error(f"Error al actualizar usuario {user_id}: {e}")
+            return {"success": False, "message": "Error interno del servidor."}, 500
 
     @staticmethod
     def delete_user(user_id):
-        """Elimina físicamente un usuario"""
         try:
             if UserRepository.delete_by_id(user_id):
                 return {"success": True, "message": "Usuario eliminado correctamente."}
