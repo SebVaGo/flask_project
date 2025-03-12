@@ -3,13 +3,12 @@ import datetime
 from app.config import Config  
 
 class TokenHelper:
-    """Clase para manejar la generación y validación de tokens JWT"""
 
     @staticmethod
-    def generate_jwt(user_id):
-        """Genera un token JWT con el ID del usuario"""
+    def generate_jwt(user_id, user_type):
         payload = {
             "user_id": user_id,
+            "user_type_id": user_type,
             "exp": datetime.datetime.utcnow() + datetime.timedelta(hours=2),
             "iat": datetime.datetime.utcnow()
         }
@@ -18,11 +17,10 @@ class TokenHelper:
 
     @staticmethod
     def verify_jwt(token):
-        """Verifica un token JWT y devuelve los datos decodificados o None si es inválido"""
         try:
             payload = jwt.decode(token, Config.SECRET_KEY, algorithms=["HS256"])
             return payload
         except jwt.ExpiredSignatureError:
-            return None  # Token expirado
+            return None  
         except jwt.InvalidTokenError:
-            return None  # Token inválido
+            return None  

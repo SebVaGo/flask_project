@@ -1,9 +1,10 @@
-from flask import request, jsonify, make_response, render_template
+from flask import request, jsonify, make_response, render_template, redirect, url_for
 from app.utils.forms.login_form import LoginForm
+from app.controllers.base_auth_controller import BaseController
 
-from app.services.auth_service import AuthService
+from app.services.auth_service import AuthService, RedirectService
 
-class AuthController:
+class AuthController(BaseController):
     @staticmethod
     def login():
         form = LoginForm()
@@ -15,11 +16,11 @@ class AuthController:
                 resultado = AuthService.authenticate_user(correo, password)
 
                 if resultado["success"]:
-                    return AuthService.create_login_response(resultado["token"])
+                    response = AuthService.create_login_response(resultado["token"])
+                    return redirect(RedirectService.get_redirect_url(resultado["user_type"]))
 
                 return jsonify({"success": False, "message": resultado["message"]}), 401
 
             return jsonify({"success": False, "errors": form.errors}), 400
 
-        # ✅ Si es GET, renderizar la página de login correctamente
         return render_template("login.html", form=form)
