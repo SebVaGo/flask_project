@@ -49,3 +49,31 @@ class ProductService:
             print(f"Error eliminando producto: {e}")  # 🔹 DEBUG
             return {"success": False, "message": "Error al eliminar el producto"}
     
+    @staticmethod
+    def get_product_by_id(product_id):
+        """Obtiene un producto por su ID"""
+        product = Product.query.get(product_id)
+        if not product:
+            print(f"Producto con ID {product_id} no encontrado")  # 🔹 DEBUG
+            return None
+
+        return product
+    
+    @staticmethod
+    def update_product(product_id, data):
+        """Actualiza un producto existente"""
+        product = Product.query.get(product_id)
+        if not product:
+            return {"success": False, "message": "Producto no encontrado"}
+
+        try:
+            product.nombre = data["nombre"]
+            product.categoria_id = data["categoria_id"]
+            product.precio = data["precio"]
+
+            db.session.commit()
+            return {"success": True, "message": "Producto actualizado exitosamente"}
+        except Exception as e:
+            db.session.rollback()
+            return {"success": False, "message": "Error al actualizar el producto"}
+        

@@ -73,3 +73,34 @@ class ProductController(BaseController):
             return jsonify({"success": True, "message": "Producto eliminado correctamente"}), 200
 
         return jsonify({"success": False, "message": result["message"]}), 400
+    
+    @staticmethod
+    def edit_product(product_id):
+        """Muestra el formulario de edición de productos"""
+        user = BaseController.get_authenticated_user()
+        if not user:
+            return jsonify({"success": False, "message": "No autorizado"}), 401
+
+        product = ProductService.get_product_by_id(product_id)
+        if not product:
+            return jsonify({"success": False, "message": "Producto no encontrado"}), 404
+            
+        form = ProductForm(obj=product)
+        categories = ProductService.get_all_categories()
+        form.categoria_id.choices = [(c.id, c.nombre) for c in categories]
+
+        if request.method == "POST" and form.validate_on_submit():
+            data = {
+                "nombre": form.nombre.data,
+                "categoria_id": form.categoria_id.data,
+                "precio": form.precio.data
+            }
+
+            result = ProductService.update_product(product_id, data)
+
+            if result["success"]:
+                return redirect(url_for("admin.list_products"))
+
+            return render_template("admin/product_form.html", form=form, error=result["message"])
+
+        return render_template("admin/product_form.html", form=form, product=product)

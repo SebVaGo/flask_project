@@ -34,7 +34,7 @@
                 <td>{{ product.categoria }}</td>
                 <td>S/ {{ "%.2f"|format(product.precio) }}</td>
                 <td>
-                    <a href="#" class="btn btn-warning btn-sm">Editar</a>
+                    <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-warning btn-sm">Editar</a>
                     <button class="btn btn-danger btn-sm" onclick="deleteProduct('{{ product.id }}')">Eliminar</button>
                 </td>
             </tr>
