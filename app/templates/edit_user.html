@@ -58,6 +58,12 @@
             {{ form.nueva_password(class="form-control") }}
         <div class="invalid-feedback"></div>
 
+        <div class="mb-3">
+            {{ form.tipo_cliente_id.label(class="form-label") }}
+            {{ form.tipo_cliente_id(class="form-control") }}
+            <div class="invalid-feedback"></div>
+        </div>
+
         <button type="submit" class="btn btn-success">Actualizar Usuario</button>
         <a href="{{ url_for('user.get_users') }}" class="btn btn-secondary">Cancelar</a>
     </form>

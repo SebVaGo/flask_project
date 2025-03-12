@@ -50,7 +50,7 @@
                         {{ form.correo(class="form-control") }}
                         <div class="invalid-feedback"></div>
                     </div>
-
+                    
                     <div class="mb-3">
                         {{ form.telefono.label(class="form-label") }}
                         {{ form.telefono(class="form-control") }}
@@ -60,6 +60,12 @@
                     <div class="mb-3">
                         {{ form.password.label(class="form-label") }}
                         {{ form.password(class="form-control") }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.tipo_cliente_id.label(class="form-label") }}
+                        {{ form.tipo_cliente_id(class="form-control") }}
                         <div class="invalid-feedback"></div>
                     </div>
 
@@ -73,8 +79,8 @@
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        // Agregar eventos a cada input para limpiar errores al escribir
-        document.querySelectorAll("#userForm input").forEach(input => {
+        // Limpiar errores cuando el usuario escribe en un campo
+        document.querySelectorAll("#userForm input, #userForm select").forEach(input => {
             input.addEventListener("input", function () {
                 if (this.classList.contains("is-invalid")) {
                     this.classList.remove("is-invalid");
@@ -83,12 +89,20 @@
             });
         });
     });
+
     function submitForm() {
         let form = document.getElementById("userForm");
         let formData = new FormData(form);
         let messagesDiv = document.getElementById("messages");
 
         let csrfToken = formData.get("csrf_token");
+
+        // 🔹 Asegurar que `tipo_cliente_id` esté en `FormData`
+        let tipoCliente = document.getElementById("tipo_cliente_id").value;
+        formData.append("tipo_cliente_id", tipoCliente);
+
+        // 🔹 Verificar que se están enviando los datos correctos antes de la solicitud
+        console.log("Datos enviados:", Object.fromEntries(formData));
 
         messagesDiv.innerHTML = "";
         document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));

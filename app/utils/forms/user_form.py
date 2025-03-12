@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
+from wtforms import StringField, PasswordField, SubmitField, SelectField
 from wtforms.validators import DataRequired, Email, Length, Optional, Regexp
 
 class BaseUserForm(FlaskForm):
@@ -46,6 +46,9 @@ class UserForm(BaseUserForm):
         Regexp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)', 
                message="La contraseña debe contener al menos una minúscula, una mayúscula y un número.")
     ])
+
+    tipo_cliente_id = SelectField("Tipo de Cliente", coerce=int, validators=[DataRequired()])
+
     
     submit = SubmitField("Registrar")
 
@@ -56,5 +59,8 @@ class UserUpdateForm(BaseUserForm):
         Regexp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)', 
                message="La contraseña debe contener al menos una minúscula, una mayúscula y un número.")
     ])
+
+    tipo_cliente_id = SelectField("Tipo de Cliente", coerce=int, validators=[DataRequired()])
+
         
     submit = SubmitField("Actualizar Usuario")
