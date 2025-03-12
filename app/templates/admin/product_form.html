@@ -1,13 +1,22 @@
 {% extends "bootstrap/base.html" %}
 
-{% block title %}Crear Producto{% endblock %}
+{% block title %}
+  {% if product %}Editar Producto{% else %}Crear Producto{% endif %}
+{% endblock %}
+
+{% block head %}
+{{ super() }}
+<meta name="csrf-token" content="{{ csrf_token }}">
+{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
             <div class="card shadow p-4">
-                <h2 class="text-center mb-4">Crear Producto</h2>
+                <h2 class="text-center mb-4">{% if product %}Editar Producto{% else %}Crear Producto{% endif %}</h2>
+
+                <div id="messages"></div>
 
                 <form id="productForm">
                     {{ form.hidden_tag() }}
@@ -30,7 +39,9 @@
                         <div class="invalid-feedback"></div>
                     </div>
 
-                    <button type="button" class="btn btn-primary w-100 mb-2" onclick="submitProduct()">Guardar Producto</button>
+                    <button type="button" class="btn btn-primary w-100 mb-2" onclick="submitProduct()">
+                        {% if product %}Actualizar Producto{% else %}Guardar Producto{% endif %}
+                    </button>
                     <a href="{{ url_for('admin.list_products') }}" class="btn btn-secondary w-100">Cancelar</a>
                 </form>
             </div>
@@ -43,12 +54,22 @@
         let form = document.getElementById("productForm");
         let formData = new FormData(form);
         let messagesDiv = document.getElementById("messages");
-
-        fetch("{{ url_for('admin.create_product') }}", {
-            method: "POST",
-            body: formData,
-            credentials: "include"
-        })
+        
+        {% if product %}
+            // Para editar producto
+            fetch("{{ url_for('admin.edit_product', product_id=product.id) }}", {
+                method: "POST",
+                body: formData,
+                credentials: "include"
+            })
+        {% else %}
+            // Para crear producto
+            fetch("{{ url_for('admin.create_product') }}", {
+                method: "POST",
+                body: formData,
+                credentials: "include"
+            })
+        {% endif %}
         .then(response => response.json())
         .then(data => {
             if (data.success) {
