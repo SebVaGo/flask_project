@@ -9,6 +9,3 @@ user_bp.route("/users/<int:user_id>/edit", methods=["GET", "POST"])(edit_user)
 user_bp.route("/users/<int:user_id>/delete", methods=["DELETE"])(delete_user)
 
 
-@user_bp.route("/success")
-def success_page():
-    return render_template("success_page.html")
