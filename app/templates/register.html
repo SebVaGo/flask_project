@@ -1,0 +1,112 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}Registro de Usuario{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow p-4">
+                <h2 class="text-center mb-4">Registro de Usuario</h2>
+
+                <!-- Mensajes de éxito o error -->
+                <div id="messages"></div>
+
+                <form id="userForm">
+                    {{ form.hidden_tag() }}
+
+                    <div class="mb-3">
+                        {{ form.primer_nombre.label(class="form-label") }}
+                        {{ form.primer_nombre(class="form-control") }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.segundo_nombre.label(class="form-label") }}
+                        {{ form.segundo_nombre(class="form-control") }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.apellido_paterno.label(class="form-label") }}
+                        {{ form.apellido_paterno(class="form-control") }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.apellido_materno.label(class="form-label") }}
+                        {{ form.apellido_materno(class="form-control") }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.correo.label(class="form-label") }}
+                        {{ form.correo(class="form-control") }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.telefono.label(class="form-label") }}
+                        {{ form.telefono(class="form-control") }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form.password.label(class="form-label") }}
+                        {{ form.password(class="form-control") }}
+                        <div class="invalid-feedback"></div>
+                    </div>
+
+                    <button type="button" class="btn btn-primary w-100" onclick="submitForm()">Registrar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function submitForm() {
+    let form = document.getElementById("userForm");
+    let formData = new FormData(form);
+    let messagesDiv = document.getElementById("messages");
+
+    let csrfToken = formData.get("csrf_token");
+    formData.delete("csrf_token"); 
+
+    messagesDiv.innerHTML = "";
+    document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+
+    fetch("{{ url_for('user.create_user') }}", {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": csrfToken 
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messagesDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+            form.reset(); 
+        } else {
+            if (data.errors) {
+                Object.keys(data.errors).forEach(field => {
+                    let input = document.querySelector(`[name="${field}"]`);
+                    if (input) {
+                        input.classList.add("is-invalid");
+                        input.nextElementSibling.innerText = data.errors[field].join(", ");
+                    }
+                });
+            } else {
+                messagesDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+            }
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        messagesDiv.innerHTML = `<div class="alert alert-danger">Error interno del servidor.</div>`;
+    });
+}
+
+</script>
+{% endblock %}

@@ -1,0 +1,8 @@
+flask
+flask-sqlalchemy 
+marshmallow
+bcrypt
+pymysql
+flask-wtf 
+email-validator
+flask-bootstrap

@@ -1,0 +1,98 @@
+{% extends "bootstrap/base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Editar Usuario</h2>
+
+    <div id="messages"></div>
+
+    <form id="editUserForm" action="{{ url_for('user.edit_user', user_id=user.id) }}" method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            {{ form.primer_nombre.label(class="form-label") }}
+            {{ form.primer_nombre(class="form-control") }}
+            <div class="invalid-feedback"></div>
+        </div>
+
+        <div class="mb-3">
+            {{ form.segundo_nombre.label(class="form-label") }}
+            {{ form.segundo_nombre(class="form-control") }}
+            <div class="invalid-feedback"></div>
+        </div>
+
+        <div class="mb-3">
+            {{ form.apellido_paterno.label(class="form-label") }}
+            {{ form.apellido_paterno(class="form-control") }}
+            <div class="invalid-feedback"></div>
+        </div>
+
+        <div class="mb-3">
+            {{ form.apellido_materno.label(class="form-label") }}
+            {{ form.apellido_materno(class="form-control") }}
+            <div class="invalid-feedback"></div>
+        </div>
+
+        <div class="mb-3">
+            {{ form.correo.label(class="form-label") }}
+            {{ form.correo(class="form-control") }}
+            <div class="invalid-feedback"></div>
+        </div>
+
+        <div class="mb-3">
+            {{ form.telefono.label(class="form-label") }}
+            {{ form.telefono(class="form-control") }}
+            <div class="invalid-feedback"></div>
+        </div>
+
+        <button type="submit" class="btn btn-success">Actualizar Usuario</button>
+        <a href="{{ url_for('user.get_users') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+
+<script>
+document.getElementById("editUserForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    let formData = new FormData(this);
+    let csrfToken = formData.get("csrf_token");
+    formData.delete("csrf_token");
+    
+    let messagesDiv = document.getElementById("messages");
+    messagesDiv.innerHTML = "";
+    document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+
+    fetch(this.action, {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": csrfToken
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Usuario actualizado correctamente");
+            window.location.href = "{{ url_for('user.get_users') }}";
+        } else {
+            if (data.errors) {
+                Object.keys(data.errors).forEach(field => {
+                    let input = document.querySelector(`[name="${field}"]`);
+                    if (input) {
+                        input.classList.add("is-invalid");
+                        input.nextElementSibling.innerText = data.errors[field].join(", ");
+                    }
+                });
+            } else {
+                messagesDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+            }
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        messagesDiv.innerHTML = `<div class="alert alert-danger">Error interno del servidor.</div>`;
+    });
+});
+</script>
+
+{% endblock %}
