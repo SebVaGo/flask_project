@@ -6,7 +6,6 @@
 
 {% block head %}
   {{ super() }}
-  <meta name="csrf-token" content="{{ csrf_token }}">
 {% endblock %}
 
 {% block content %}
@@ -20,25 +19,28 @@
 
                 <div id="messages"></div>
 
-                <form id="productForm">
-                    {{ form.hidden_tag() }}
+                <form id="productForm" 
+                      data-url="{% if product %}{{ url_for('admin.edit_product', product_id=product.id) }}{% else %}{{ url_for('admin.create_product') }}{% endif %}"
+                      data-redirect="{{ url_for('admin.list_products') }}">
+
+                    {{ form.hidden_tag() }}  
 
                     <div class="mb-3">
                         {{ form.nombre.label(class="form-label") }}
                         {{ form.nombre(class="form-control") }}
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback" id="error-nombre"></div>
                     </div>
 
                     <div class="mb-3">
                         {{ form.categoria_id.label(class="form-label") }}
                         {{ form.categoria_id(class="form-control") }}
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback" id="error-categoria_id"></div>
                     </div>
 
                     <div class="mb-3">
                         {{ form.precio.label(class="form-label") }}
                         {{ form.precio(class="form-control") }}
-                        <div class="invalid-feedback"></div>
+                        <div class="invalid-feedback" id="error-precio"></div>
                     </div>
 
                     <button type="button" class="btn btn-primary w-100 mb-2" onclick="submitProduct()">
@@ -50,41 +52,8 @@
         </div>
     </div>
 </div>
+{% endblock %}
 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-    let csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute("content");
-    let messagesDiv = document.getElementById("messages");
-
-    window.submitProduct = function () {
-        let form = document.getElementById("productForm");
-        let formData = new FormData(form);
-
-        {% if product %}
-            var url = "{{ url_for('admin.edit_product', product_id=product.id) }}";
-        {% else %}
-            var url = "{{ url_for('admin.create_product') }}";
-        {% endif %}
-
-        fetch(url, {
-            method: "POST",
-            body: formData,
-            headers: { "X-CSRFToken": csrfToken },
-            credentials: "same-origin"
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                window.location.href = "{{ url_for('admin.list_products') }}";
-            } else {
-                messagesDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            messagesDiv.innerHTML = `<div class="alert alert-danger">Error interno del servidor.</div>`;
-        });
-    };
-});
-</script>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/product_form.js') }}"></script>
 {% endblock %}
