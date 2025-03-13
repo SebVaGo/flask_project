@@ -22,22 +22,23 @@ class AuthService:
         token = TokenHelper.generate_jwt(user.id, user.tipo_cliente_id)
 
         return {"success": True, "user_id": user.id, "token": token, "user_type": user.tipo_cliente_id}
-
+    
     @staticmethod
     def create_login_response(token):
         resp = make_response({"success": True, "message": "Login exitoso"})
         CookieHelper.set_cookie(resp, "access_token", token)
-        return resp
 
+        print(resp.headers)  
+        return resp
+    
 class RedirectService:
 
     @staticmethod
     def get_redirect_url(user_type):
         """Devuelve la URL de redirección según el tipo de usuario"""
         if user_type == 1:
-            return "/admin/dashboard"  # Simulación de ruta de administrador
-        
+            return url_for("admin.list_products")  
         elif user_type == 2:
-            return "/products"  # Simulación de ruta de productos
-        
-        return "/"
+            return url_for("products.list")  
+
+        return url_for("home.index")

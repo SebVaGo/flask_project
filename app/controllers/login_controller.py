@@ -1,6 +1,6 @@
 from flask import request, jsonify, make_response, render_template, redirect, url_for
 from app.utils.forms.login_form import LoginForm
-from app.controllers.base_auth_controller import BaseController
+from app.controllers.base_controller import BaseController
 
 from app.services.auth_service import AuthService, RedirectService
 
@@ -17,7 +17,7 @@ class AuthController(BaseController):
 
                 if resultado["success"]:
                     response = AuthService.create_login_response(resultado["token"])
-                    return redirect(RedirectService.get_redirect_url(resultado["user_type"]))
+                    return jsonify({"success": True, "redirect_url": RedirectService.get_redirect_url(resultado["user_type"])}), 200
 
                 return jsonify({"success": False, "message": resultado["message"]}), 401
 

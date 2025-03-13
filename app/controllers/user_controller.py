@@ -9,11 +9,9 @@ class CSRFForm(FlaskForm):
 
 def create_user():
     form = UserForm()
-    client_types = UserService.get_all_tipe_user()  # Obtener tipos de cliente
+    client_types = UserService.get_all_tipe_user()  
 
     form.tipo_cliente_id.choices = [(tipo.id, tipo.nombre) for tipo in client_types]
-
-
 
     if request.method == "POST" and form.validate_on_submit():
         data = {key: value for key, value in form.data.items() if key not in ["submit", "csrf_token"]}
