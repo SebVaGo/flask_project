@@ -1,5 +1,5 @@
 from flask import Blueprint
-from app.controllers.order_controller import OrderController
+from app.controllers.orders.order_controller import OrderController
 
 order_bp = Blueprint("order", __name__)
 order_controller = OrderController()
