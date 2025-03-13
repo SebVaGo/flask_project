@@ -1,5 +1,5 @@
 from app.config import db
 
-class Password(db.Model):
+class PasswordModel(db.Model):
     __tablename__ = "passwords"
-    __table_args__ = {'autoload_with': db.engine}  # 🔥 Reflection activo
+    __table_args__ = {'autoload_with': db.engine} 

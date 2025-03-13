@@ -15,22 +15,17 @@ def create_app():
 
     # 🔥 Inicializar SQLAlchemy
     db.init_app(app)
-    migrate = Migrate(app, db)  # Migraciones (si las usas)
+    migrate = Migrate(app, db) 
 
-    # 🔥 Activar el contexto de la aplicación (CRÍTICO para Reflection)
     with app.app_context():
-        # Importa modelos aquí para evitar errores fuera del contexto
-        from app.models.user_model import User
-        from app.models.password_model import Password
-        from app.models.order_model import Order
-        from app.models.product_model import Product
-        from app.models.categoy_product_model import Category
-        from app.models.client_tipe_model import ClientType
+        from app.models.user_model import UserModel
+        from app.models.password_model import PasswordModel
+        from app.models.order_model import OrderModel
+        from app.models.product_model import ProductModel
+        from app.models.categoy_product_model import CategoryModel
+        from app.models.client_tipe_model import ClientTypeModel
 
-        # (Opcional) Verificar que Reflection funciona:
-        print("Campos cargados en Product:", Product.__table__.columns.keys())
 
-    # 🔹 Registra los Blueprints
     from app.routers.user_router import user_bp
     from app.routers.login_router import login_bp
     from app.routers.admin_router import admin_bp

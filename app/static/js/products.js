@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let cart = [];
 
     function getCsrfToken() {
-        return document.querySelector("input[name='csrf_token']").value;  // ✅ Obtener token de un input oculto
+        return document.querySelector("input[name='csrf_token']").value;
     }
 
     window.addToCart = function(id, name, price) {
@@ -66,7 +66,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         let orderData = {
-            usuario_id: 26, // 🔹 cambiar por el usuario autenticado
+            usuario_id: 33, 
             products: cart.map(p => ({ producto_id: p.id, cantidad: p.quantity }))
         };
 
@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": getCsrfToken()  // ✅ Se obtiene de un campo oculto en el formulario
+                "X-CSRFToken": getCsrfToken()  
             },
             credentials: "same-origin",
             body: JSON.stringify(orderData)
@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
-                "X-CSRFToken": getCsrfToken()  // ✅ Se obtiene de un campo oculto en el formulario
+                "X-CSRFToken": getCsrfToken() 
             },
             credentials: "same-origin"
         })

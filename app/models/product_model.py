@@ -1,7 +1,7 @@
 from app.config import db
 
-class Product(db.Model):
+class ProductModel(db.Model):
     __tablename__ = "products"
-    __table_args__ = {'autoload_with': db.engine}  # Reflection automático
+    __table_args__ = {'autoload_with': db.engine} 
 
-    categoria = db.relationship("Category", backref="productos")
+    categoria = db.relationship("CategoryModel", backref="productos")
