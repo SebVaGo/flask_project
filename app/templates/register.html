@@ -9,16 +9,9 @@
             <div class="card shadow p-4">
                 <h2 class="text-center mb-4">Registro de Usuario</h2>
 
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }}">{{ message }}</div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
                 <div id="messages"></div>
 
-                <form id="userForm">
+                <form id="userForm" method="POST">
                     {{ form.hidden_tag() }}
 
                     <div class="mb-3">
@@ -69,7 +62,7 @@
                         <div class="invalid-feedback"></div>
                     </div>
 
-                    <button type="button" class="btn btn-primary w-100 mb-2" onclick="submitForm()">Registrar</button>
+                    <button type="button" class="btn btn-primary w-100 mb-2" onclick="submitUserForm()">Registrar</button>
                     <a href="{{ url_for('user.get_users') }}" class="btn btn-secondary w-100">Volver al Inicio</a>
                 </form>
             </div>
@@ -78,65 +71,51 @@
 </div>
 
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        // Limpiar errores cuando el usuario escribe en un campo
-        document.querySelectorAll("#userForm input, #userForm select").forEach(input => {
-            input.addEventListener("input", function () {
-                if (this.classList.contains("is-invalid")) {
-                    this.classList.remove("is-invalid");
-                    this.nextElementSibling.innerText = "";
-                }
-            });
-        });
-    });
+function submitUserForm() {
+    let form = document.getElementById("userForm");
+    let formData = new FormData(form);
+    let messagesDiv = document.getElementById("messages");
 
-    function submitForm() {
-        let form = document.getElementById("userForm");
-        let formData = new FormData(form);
-        let messagesDiv = document.getElementById("messages");
+    let csrfToken = formData.get("csrf_token");  // ✅ Se obtiene el CSRF Token correctamente
 
-        let csrfToken = formData.get("csrf_token");
-
-        // 🔹 Asegurar que `tipo_cliente_id` esté en `FormData`
-        let tipoCliente = document.getElementById("tipo_cliente_id").value;
-        formData.append("tipo_cliente_id", tipoCliente);
-
-        // 🔹 Verificar que se están enviando los datos correctos antes de la solicitud
-        console.log("Datos enviados:", Object.fromEntries(formData));
-
+    fetch("{{ url_for('user.create_user') }}", {
+        method: "POST",
+        body: formData,
+        headers: { "X-CSRFToken": csrfToken }  // ✅ CSRF Token enviado en el header
+    })
+    .then(response => response.json())
+    .then(data => {
         messagesDiv.innerHTML = "";
-        document.querySelectorAll(".is-invalid").forEach(el => el.classList.remove("is-invalid"));
+        if (data.success) {
+            messagesDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+            form.reset();
+        } else {
+            messagesDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+            if (data.errors) {
+                Object.keys(data.errors).forEach(field => {
+                    let input = document.querySelector(`[name="${field}"]`);
+                    if (input) {
+                        input.classList.add("is-invalid");
+                        input.nextElementSibling.innerText = data.errors[field].join(", ");
+                    }
+                });
+            }
+        }
+    })
+    .catch(error => {
+        console.error("Error:", error);
+        messagesDiv.innerHTML = `<div class="alert alert-danger">Error interno del servidor.</div>`;
+    });
+}
 
-        fetch("{{ url_for('user.create_user') }}", {
-            method: "POST",
-            body: formData,
-            headers: {
-                "X-CSRFToken": csrfToken
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                messagesDiv.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
-                form.reset(); 
-            } else {
-                if (data.errors) {
-                    Object.keys(data.errors).forEach(field => {
-                        let input = document.querySelector(`[name="${field}"]`);
-                        if (input) {
-                            input.classList.add("is-invalid");
-                            input.nextElementSibling.innerText = data.errors[field].join(", ");
-                        }
-                    });
-                } else {
-                    messagesDiv.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
-                }
-            }
-        })
-        .catch(error => {
-            console.error("Error:", error);
-            messagesDiv.innerHTML = `<div class="alert alert-danger">Error interno del servidor.</div>`;
-        });
-    }
+// Eliminar clases de error cuando el usuario escriba
+document.querySelectorAll("#userForm input, #userForm select").forEach(input => {
+    input.addEventListener("input", function () {
+        if (this.classList.contains("is-invalid")) {
+            this.classList.remove("is-invalid");
+            this.nextElementSibling.innerText = "";
+        }
+    });
+});
 </script>
 {% endblock %}

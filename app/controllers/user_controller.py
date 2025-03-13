@@ -1,62 +1,70 @@
-from flask import render_template, request, jsonify, flash, redirect, url_for
-from app.services.user_service import UserService
+from flask import request, flash, render_template
+
+from app.services.users.user_service import UserService, ClientTypeService
 from app.utils.forms.user_form import UserForm, UserUpdateForm
-from flask_wtf import FlaskForm
-from wtforms import HiddenField
+from app.utils.forms.csrf_form import CSRFForm
+from app.controllers.base_controller import ApiController, ViewController
 
-class CSRFForm(FlaskForm):
-    csrf_token = HiddenField()
 
-def create_user():
-    form = UserForm()
-    client_types = UserService.get_all_tipe_user()  
+class UserController(ApiController, ViewController):
 
-    form.tipo_cliente_id.choices = [(tipo.id, tipo.nombre) for tipo in client_types]
+    def __init__(self):
+        super().__init__()
+        self.user_service = UserService()
+        self.client_type_service = ClientTypeService()
 
-    if request.method == "POST" and form.validate_on_submit():
-        data = {key: value for key, value in form.data.items() if key not in ["submit", "csrf_token"]}
+    def create_user(self):
+        form = UserForm()
+        client_types = self.client_type_service.get_all_types()
+        form.tipo_cliente_id.choices = [(tipo.id, tipo.nombre) for tipo in client_types]
 
-        resultado = UserService.create_user(data)
+        if request.method == "POST" and form.validate_on_submit():
+            data = {
+                key: value for key, value in form.data.items() 
+                if key not in ["submit", "csrf_token"]
+            }
+            resultado = self.user_service.create_user(data)
 
-        if resultado["success"]:
-            flash("Usuario creado correctamente.", "success")
-            return jsonify(resultado), 201
+            if resultado["success"]:
+                flash("Usuario creado correctamente.", "success")
+                return self.json_response(True, "Usuario creado correctamente.", status=201)
 
-        flash(resultado["message"], "danger")
-        return jsonify(resultado), 400
+            flash(resultado["message"], "danger")
+            return self.json_response(False, resultado["message"], status=400)
 
-    if request.method == "POST":
-        errors = {field: messages for field, messages in form.errors.items()}
-        return jsonify({"success": False, "errors": errors}), 400
+        if request.method == "POST":
+            return self.json_response(False, "Errores de validación", errors=form.errors, status=400)
 
-    return render_template("register.html", form=form)
+        return self.render("register.html", form=form)
 
-def get_users():
-    users = UserService.get_all_users()
-    form = CSRFForm()
-    return render_template("users.html", users=users, form=form)
+    def get_users(self):
+        users = self.user_service.get_all_users()
+        form = CSRFForm()
+        return self.render("users.html", users=users, form=form)
 
-def edit_user(user_id):
-    user = UserService.get_user_by_id(user_id)
-    
-    if not user:
-        return jsonify({"success": False, "message": "Usuario no encontrado."}), 404
+    def edit_user(self, user_id):
+        user = self.user_service.get_user_by_id(user_id)
+        
+        if not user:
+            return self.json_response(False, "Usuario no encontrado.", status=404)
 
-    form = UserUpdateForm(obj=user)
+        form = UserUpdateForm(obj=user)
+        client_types = self.client_type_service.get_all_types()
+        form.tipo_cliente_id.choices = [(tipo.id, tipo.nombre) for tipo in client_types]
 
-    client_types = UserService.get_all_tipe_user()
-    form.tipo_cliente_id.choices = [(tipo.id, tipo.nombre) for tipo in client_types]
+        if request.method == "POST" and form.validate_on_submit():
+            data = {
+                key: value for key, value in form.data.items()
+                if key not in ["submit", "csrf_token"]
+            }
+            resultado, status_code = self.user_service.update_user(user_id, data)
+            return self.json_response(resultado["success"], resultado["message"], status=status_code)
 
-    if form.validate_on_submit():
-        data = {key: value for key, value in form.data.items() if key not in ["submit", "csrf_token"]}
-        resultado, status_code = UserService.actualizar_usuario(user_id, data)
-        return jsonify(resultado), status_code
+        if request.method == "POST":
+            return self.json_response(False, "Errores de validación", errors=form.errors, status=400)
 
-    if request.method == "POST":
-        return jsonify({"success": False, "errors": form.errors}), 400
+        return self.render("edit_user.html", user=user, form=form)
 
-    return render_template("edit_user.html", user=user, form=form)
-
-def delete_user(user_id):
-    resultado = UserService.delete_user(user_id)
-    return jsonify(resultado), 200 if resultado["success"] else 400
+    def delete_user(self, user_id):
+        resultado = self.user_service.delete_user(user_id)
+        return self.json_response(resultado["success"], resultado["message"], status=200 if resultado["success"] else 400)

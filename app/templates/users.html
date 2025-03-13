@@ -1,15 +1,17 @@
 {% extends "bootstrap/base.html" %}
 
-{% block content %}
-<div class="container mt-4">
-    <h2>Lista de Usuarios</h2>
-    <a href="{{ url_for('user.create_user') }}" class="btn btn-primary mb-3">Crear Usuario</a>
+{% block title %}Lista de Usuarios{% endblock %}
 
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Lista de Usuarios</h2>
+    <a href="{{ url_for('user.create_user') }}" class="btn btn-primary mb-3">Crear Usuario</a>
+    
     <form id="csrfForm">
         {{ form.hidden_tag() }}  
     </form>
-    
 
+    {% if users %}
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -35,63 +37,17 @@
             {% endfor %}
         </tbody>
     </table>
-</div>
-
-<div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Editar Usuario</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div id="editUserFormContainer"></div>
-            </div>
-        </div>
-    </div>
+    {% else %}
+    <p class="text-center">No hay usuarios registrados.</p>
+    {% endif %}
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll(".edit-user").forEach(button => {
-        button.addEventListener("click", function() {
-            let userId = this.getAttribute("data-id");
-
-            fetch(`/users/${userId}/edit`) 
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById("editUserFormContainer").innerHTML = html;
-                    $("#editUserModal").modal("show");  
-                });
-        });
-    });
-
-    document.getElementById("editUserForm")?.addEventListener("submit", function(event) {
-        event.preventDefault();  
-
-        let formData = new FormData(this); 
-
-        fetch(this.action, {
-            method: "POST",
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                $("#editUserModal").modal("hide");  
-                location.reload();  
-            } else {
-                alert(data.message);  
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
     document.querySelectorAll(".delete-user").forEach(button => {
         button.addEventListener("click", function() {
             let userId = this.getAttribute("data-id");
-            let csrfToken = document.querySelector('input[name="csrf_token"]').value; 
+            let csrfToken = document.querySelector('input[name="csrf_token"]').value;
 
             if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
                 fetch(`/users/${userId}/delete`, {
@@ -104,7 +60,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 .then(data => {
                     if (data.success) {
                         alert("Usuario eliminado correctamente.");
-                        location.reload(); 
+                        location.reload();
                     } else {
                         alert("Error: " + data.message);
                     }

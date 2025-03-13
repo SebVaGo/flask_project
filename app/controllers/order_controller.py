@@ -1,14 +1,20 @@
-from flask import request
-from flask_wtf.csrf import generate_csrf
-from app.services.order_service import OrderService
+from flask import request, flash, render_template
+
+from app.services.orders.order_creation_service import OrderCreationService
+from app.services.orders.order_query_service import OrderQueryService
+from app.services.orders.order_manage_service import OrderManagementService
 from app.utils.forms.order_form import OrderForm, UpdateQuantityForm
 from app.utils.forms.csrf_form import CSRFForm
 from app.controllers.base_controller import ApiController, ViewController
 
 
-order_service = OrderService()
-
 class OrderController(ApiController, ViewController):
+
+    def __init__(self):
+        super().__init__()
+        self.order_creation_service = OrderCreationService()
+        self.order_query_service = OrderQueryService()
+        self.order_management_service = OrderManagementService()
 
     def create_order(self):
         data = request.get_json()
@@ -20,19 +26,16 @@ class OrderController(ApiController, ViewController):
         if errors:
             return self.json_response(False, "Errores de validación", errors=errors, status=400)
 
-        result = order_service.create_order(data)
-        if result["success"]:
-            return self.json_response(True, "Orden creada con éxito", status=201)
-
-        return self.json_response(False, result["message"], status=400)
+        result = self.order_creation_service.create_order(data)
+        return self.json_response(result["success"], result["message"], status=201 if result["success"] else 400)
 
     def list_orders(self):
-        orders = order_service.get_all_orders()
+        orders = self.order_query_service.get_all_orders()
         form = CSRFForm()
         return self.render("admin/orders.html", orders=orders, form=form)
 
     def delete_product(self, orden_id, producto_id):
-        result = order_service.delete_order_product(orden_id, producto_id)
+        result = self.order_management_service.delete_order_product(orden_id, producto_id)
         return self.json_response(result["success"], result["message"], status=200 if result["success"] else 400)
 
     def update_quantity(self, orden_id, producto_id):
@@ -46,6 +49,5 @@ class OrderController(ApiController, ViewController):
             return self.json_response(False, "Errores de validación", errors=errors, status=400)
 
         nueva_cantidad = form.cantidad.data
-        result = order_service.update_order_quantity(orden_id, producto_id, nueva_cantidad)
-
+        result = self.order_management_service.update_order_quantity(orden_id, producto_id, nueva_cantidad)
         return self.json_response(result["success"], result["message"], status=200 if result["success"] else 400)
