@@ -1,30 +1,27 @@
-from flask import request
-
+from flask import request, flash
 from app.utils.forms.login_form import LoginForm
-from app.controllers.base_controller import ApiController, ViewController
-from app.services.auth.auth_service import AuthService
-from app.services.auth.redirect_service import RedirectService
+from app.controllers.auth.base_auth_controller import BaseAuthController
 
 
-class AuthController(ApiController, ViewController):
-
-    def __init__(self):
-        super().__init__()
-        self.auth_service = AuthService()
-        self.redirect_service = RedirectService()
+class AuthLoginController(BaseAuthController):
+    """Maneja el inicio de sesión."""
 
     def login(self):
+        """Maneja la solicitud de inicio de sesión."""
         form = LoginForm()
 
         if request.method != "POST":
             return self.render_login_form(form)
 
-        if not form.validate_on_submit():
-            return self.json_response(False, "Errores de validación", errors=form.errors, status=400)
+        errors = self.validate_form(form)
+        if errors:
+            flash("Errores de validación", "danger")
+            return self.json_response(False, "Errores de validación", errors=errors, status=400)
 
         return self._authenticate_user(form)
 
     def _authenticate_user(self, form):
+        """Autentica al usuario y devuelve la respuesta."""
         resultado = self.auth_service.authenticate_user(form.correo.data, form.password.data)
 
         if resultado["success"]:
@@ -33,6 +30,3 @@ class AuthController(ApiController, ViewController):
             }, status=200)
 
         return self.json_response(False, resultado["message"], status=401)
-
-    def render_login_form(self, form):
-        return self.render("auth/login.html", form=form)

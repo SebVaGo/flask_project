@@ -1,0 +1,8 @@
+from app.controllers.products.product_create_controller import ProductCreateController
+from app.controllers.products.product_edit_controller import ProductEditController
+from app.controllers.products.product_delete_controller import ProductDeleteController
+from app.controllers.products.product_list_controller import ProductListController
+
+
+class ProductController(ProductCreateController, ProductEditController, ProductDeleteController, ProductListController):
+    pass

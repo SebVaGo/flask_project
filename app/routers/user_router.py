@@ -1,7 +1,8 @@
-from flask import Blueprint, render_template
-from app.controllers.user_controller import UserController
+from flask import Blueprint
+from app.controllers.users.user_controller import UserController
 
 user_bp = Blueprint("user", __name__)
+
 user_controller = UserController()
 
 user_bp.route("/register", methods=["GET", "POST"])(user_controller.create_user)

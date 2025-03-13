@@ -27,12 +27,12 @@ def create_app():
 
 
     from app.routers.user_router import user_bp
-    from app.routers.login_router import login_bp
+    from app.routers.auth_router import auth_bp
     from app.routers.admin_router import admin_bp
     from app.routers.order_router import order_bp
 
     app.register_blueprint(user_bp, url_prefix="/")
-    app.register_blueprint(login_bp, url_prefix="/")
+    app.register_blueprint(auth_bp, url_prefix="/")
     app.register_blueprint(admin_bp, url_prefix="/admin")
     app.register_blueprint(order_bp, url_prefix="/")
 
