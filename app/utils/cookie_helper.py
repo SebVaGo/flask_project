@@ -8,9 +8,11 @@ class CookieHelper:
             key,
             value,
             httponly=True,
-            secure=True,
-            samesite="Strict",
-            max_age=expires
+            secure=False,
+            samesite="Lax",
+            max_age=expires,
+            path="/",
+            domain="127.0.0.1"
         )
 
     @staticmethod

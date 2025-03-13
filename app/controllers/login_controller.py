@@ -1,6 +1,6 @@
 from flask import request, jsonify, make_response, render_template, redirect, url_for
 from app.utils.forms.login_form import LoginForm
-from app.controllers.base_auth_controller import BaseController
+from app.controllers.base_controller import BaseController
 
 from app.services.auth_service import AuthService, RedirectService
 

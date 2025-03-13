@@ -1,92 +1,86 @@
-from flask import request, jsonify, render_template, redirect, url_for
+from flask import request, jsonify
+from flask_wtf.csrf import generate_csrf
 from app.services.product_service import ProductService
 from app.utils.forms.product_form import ProductForm
-from app.controllers.base_auth_controller import BaseController
-from flask_wtf.csrf import generate_csrf
-from app.utils.auth_decorator import require_authentication
+from app.controllers.base_controller import BaseController
+
+product_service = ProductService()
+
+class ProductController(BaseController):
+
+    def __init__(self):
+        super().__init__()
 
 
-class ProductController:
-    @staticmethod
-    @require_authentication
-    def list_products():
+    def list_products(self):
+        products = product_service.get_all_products()
+        csrf_token = generate_csrf()
+        return self.render("admin/products.html", products=products, csrf_token=csrf_token)
 
-        """Lista todos los productos en la vista de administración"""
-        products = ProductService.get_all_products()
-        csrf_token = generate_csrf()  # 🔹 Generar el token CSRF en el backend
-        return render_template("admin/products.html", products=products, csrf_token=csrf_token)
-
-    @staticmethod
-    @require_authentication
-    def new_product_form():
-        
-        """Muestra el formulario de creación de productos"""
+    def new_product_form(self):
         form = ProductForm()
-        categories = ProductService.get_all_categories()  # Obtener categorías para el select
-
+        categories = product_service.get_all_categories()
         form.categoria_id.choices = [(c.id, c.nombre) for c in categories]
-        
-        return render_template("admin/product_form.html", form=form)
+        csrf_token = generate_csrf()
+        return self.render("admin/product_form.html", form=form, csrf_token=csrf_token)
 
-    @staticmethod
-    @require_authentication
-    def create_product():
-    
-        """Crea un nuevo producto"""
+    def create_product(self):
         form = ProductForm()
-        categories = ProductService.get_all_categories()
+        categories = product_service.get_all_categories()
         form.categoria_id.choices = [(c.id, c.nombre) for c in categories]
 
-        if request.method == "POST" and form.validate_on_submit():
-            data = {
-                "nombre": form.nombre.data,
-                "categoria_id": form.categoria_id.data,
-                "precio": form.precio.data
-            }
+        errors = self.validate_form(form)
+        if errors:
+            csrf_token = generate_csrf()
+            return self.render("admin/product_form.html", form=form, errors=errors, csrf_token=csrf_token)
 
-            result = ProductService.create_product(data)
+        data = {
+            "nombre": form.nombre.data,
+            "categoria_id": form.categoria_id.data,
+            "precio": form.precio.data
+        }
 
-            if result["success"]:
-                return redirect(url_for("admin.list_products"))
+        result = product_service.create_product(data)
 
-            return render_template("admin/product_form.html", form=form, error=result["message"])
+        if result["success"]:
+            return jsonify({"success": True, "message": "Producto creado correctamente"}), 200
 
-        return render_template("admin/product_form.html", form=form)
-    
-    @staticmethod
-    @require_authentication
-    def delete_product(product_id):
+        return jsonify({"success": False, "message": result["message"]}), 400
 
-        result = ProductService.delete_product(product_id)
+    def delete_product(self, product_id):
+        result = product_service.delete_product(product_id)
+
         if result["success"]:
             return jsonify({"success": True, "message": "Producto eliminado correctamente"}), 200
 
         return jsonify({"success": False, "message": result["message"]}), 400
-    
-    @staticmethod
-    @require_authentication
-    def edit_product(product_id):
 
-        product = ProductService.get_product_by_id(product_id)
+    def edit_product(self, product_id):
+        product = product_service.get_product_by_id(product_id)
         if not product:
             return jsonify({"success": False, "message": "Producto no encontrado"}), 404
-            
+
         form = ProductForm(obj=product)
-        categories = ProductService.get_all_categories()
+        categories = product_service.get_all_categories()
         form.categoria_id.choices = [(c.id, c.nombre) for c in categories]
 
-        if request.method == "POST" and form.validate_on_submit():
-            data = {
-                "nombre": form.nombre.data,
-                "categoria_id": form.categoria_id.data,
-                "precio": form.precio.data
-            }
+        if request.method == "GET":
+            csrf_token = generate_csrf()
+            return self.render("admin/product_form.html", form=form, product=product, csrf_token=csrf_token)
 
-            result = ProductService.update_product(product_id, data)
+        errors = self.validate_form(form)
+        if errors:
+            return jsonify({"success": False, "errors": errors}), 400
 
-            if result["success"]:
-                return redirect(url_for("admin.list_products"))
+        data = {
+            "nombre": form.nombre.data,
+            "categoria_id": form.categoria_id.data,
+            "precio": form.precio.data
+        }
 
-            return render_template("admin/product_form.html", form=form, error=result["message"])
+        result = product_service.update_product(product_id, data)
 
-        return render_template("admin/product_form.html", form=form, product=product)
+        if result["success"]:
+            return jsonify({"success": True, "message": "Producto actualizado correctamente"}), 200
+
+        return jsonify({"success": False, "message": result["message"]}), 400

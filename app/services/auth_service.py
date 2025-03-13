@@ -27,8 +27,10 @@ class AuthService:
     def create_login_response(token):
         resp = make_response({"success": True, "message": "Login exitoso"})
         CookieHelper.set_cookie(resp, "access_token", token)
-        return resp
 
+        print(resp.headers)  
+        return resp
+    
 class RedirectService:
 
     @staticmethod

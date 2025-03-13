@@ -16,7 +16,7 @@ class UserService:
 
     @staticmethod
     def create_user(data):
-        print("Datos recibidos en create_user:", data)  # DEBUG
+        print("Datos recibidos en create_user:", data) 
 
         try:
             if UserRepository.get_user_by_email(data["correo"]):

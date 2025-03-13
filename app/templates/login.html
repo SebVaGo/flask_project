@@ -42,7 +42,7 @@
         fetch("{{ url_for('auth.login') }}", {
             method: "POST",
             body: formData,
-            credentials: "include"
+            credentials: "same-origin"
         })
         .then(response => response.json())
         .then(data => {

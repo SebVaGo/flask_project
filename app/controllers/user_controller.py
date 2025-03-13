@@ -9,7 +9,7 @@ class CSRFForm(FlaskForm):
 
 def create_user():
     form = UserForm()
-    client_types = UserService.get_all_tipe_user()  # Obtener tipos de cliente
+    client_types = UserService.get_all_tipe_user()  
 
     form.tipo_cliente_id.choices = [(tipo.id, tipo.nombre) for tipo in client_types]
 
