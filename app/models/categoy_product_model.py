@@ -2,6 +2,4 @@ from app.config import db
 
 class Category(db.Model):
     __tablename__ = "categories"
-
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    nombre = db.Column(db.String(50), nullable=False, unique=True)
+    __table_args__ = {'autoload_with': db.engine}  # 🔥 Reflection activo

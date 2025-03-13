@@ -1,12 +1,11 @@
-from flask import request, jsonify, make_response, render_template, redirect, url_for
+from flask import request
 from app.utils.forms.login_form import LoginForm
-from app.controllers.base_controller import BaseController
-
+from app.controllers.base_controller import ApiController, ViewController 
 from app.services.auth_service import AuthService, RedirectService
 
-class AuthController(BaseController):
-    @staticmethod
-    def login():
+class AuthController(ApiController, ViewController):
+    
+    def login(self):
         form = LoginForm()
 
         if request.method == "POST":
@@ -16,11 +15,12 @@ class AuthController(BaseController):
                 resultado = AuthService.authenticate_user(correo, password)
 
                 if resultado["success"]:
-                    response = AuthService.create_login_response(resultado["token"])
-                    return jsonify({"success": True, "redirect_url": RedirectService.get_redirect_url(resultado["user_type"])}), 200
+                    return self.json_response(True, "Login exitoso", data={
+                        "redirect_url": RedirectService.get_redirect_url(resultado["user_type"])
+                    }, status=200)
 
-                return jsonify({"success": False, "message": resultado["message"]}), 401
+                return self.json_response(False, resultado["message"], status=401)
 
-            return jsonify({"success": False, "errors": form.errors}), 400
+            return self.json_response(False, "Errores de validación", errors=form.errors, status=400)
 
-        return render_template("login.html", form=form)
+        return self.render("auth/login.html", form=form) 

@@ -1,5 +1,4 @@
 from flask import request
-from flask_wtf.csrf import generate_csrf
 from app.services.order_service import OrderService
 from app.utils.forms.order_form import OrderForm, UpdateQuantityForm
 from app.utils.forms.csrf_form import CSRFForm
