@@ -8,8 +8,8 @@ class RedirectService:
     def get_redirect_url(user_type):
         """Devuelve la URL de redirección según el tipo de usuario."""
         if user_type == 1:
-            return url_for("admin.list_products")  # ✅ Ahora coincide con el blueprint `admin`
+            return url_for("admin.list_products")  
         elif user_type == 2:
-            return url_for("admin.list_products")  # ✅ También para clientes, si aplica
+            return url_for("admin.list_products")  #Cambiar cuando funcione
 
         return url_for("home.index")
