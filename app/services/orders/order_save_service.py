@@ -1,8 +1,9 @@
+import logging
+
 from app.config import db
 from app.models.order_model import OrderModel
 from app.models.user_model import UserModel
 from app.utils.db_session_manager import DBSessionManager
-import logging
 
 class OrderSaveService:
     def __init__(self):
@@ -23,18 +24,21 @@ class OrderSaveService:
             usuario_id = data.get("usuario_id")
             usuario = self.user_model.query.get(usuario_id)
             if not usuario:
+                logging.warning("Usuario no existe o no válido")
                 return {"success": False, "message": "El usuario especificado no existe."}, 400
 
             # 2. Validar productos
             productos = data.get("products", [])
             if not productos:
+                logging.warning("No se proporcionaron productos para la orden")
                 return {"success": False, "message": "No se proporcionaron productos para la orden."}, 400
 
-            # 3. Si es actualización, validar que la orden existe y eliminar las líneas existentes
+            # 3. Manejo de actualización
             if is_update:
                 if not self._order_exists(session, order_id):
+                    logging.warning(f"Orden {order_id} no encontrada para actualización")
                     return {"success": False, "message": "Orden no encontrada"}, 404
-                # Se eliminan las líneas actuales de la orden
+                # Eliminar líneas actuales de la orden
                 session.query(self.order_model).filter_by(orden_id=order_id).delete()
             else:
                 order_id = self.get_next_order_id()

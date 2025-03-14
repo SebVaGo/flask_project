@@ -3,11 +3,21 @@
 
 {% block content %}
 <div class="container mt-5">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} mt-2">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
   <h2>Editar Orden #{{ order.orden_id }}</h2>
   <form id="editOrderForm">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <!-- Si lo deseas, puedes incluir el usuario en un input hidden para JS:
+         <input type="hidden" id="usuario_id" value="{{ order.usuario_id }}"> -->
 
-    <!-- Tabla con los productos que YA están en la orden -->
+    <!-- Tabla con los productos que ya están en la orden -->
     <h3>Productos en la Orden</h3>
     <table class="table table-bordered">
       <thead>
@@ -22,7 +32,7 @@
         <tr data-producto-id="{{ item.producto_id }}">
           <td>{{ item.producto_nombre }}</td>
           <td>
-            <input type="number" class="form-control form-control-sm quantity-input"
+            <input type="number" class="form-control form-control-sm quantity-input" 
                    value="{{ item.cantidad }}" min="1">
           </td>
           <td>
@@ -39,7 +49,7 @@
     </button>
   </form>
 
-  <!-- Tabla de productos disponibles (los que NO están en la orden) -->
+  <!-- Tabla de productos disponibles para agregar -->
   <h3 class="mt-5">Productos Disponibles</h3>
   {% if productos_disponibles %}
   <table class="table table-bordered">
@@ -60,8 +70,7 @@
         <td>{{ product.categoria }}</td>
         <td>S/ {{ "%.2f"|format(product.precio) }}</td>
         <td>
-          <!-- El botón llama a la función con los datos del producto -->
-          <button type="button" class="btn btn-primary btn-sm"
+          <button type="button" class="btn btn-primary btn-sm" 
                   onclick="addProductToOrder('{{ product.id }}', '{{ product.nombre }}', '{{ product.precio }}')">
             Agregar
           </button>
@@ -77,87 +86,9 @@
 {% endblock %}
 
 {% block scripts %}
-<script>
-  // Función para agregar un producto a la tabla de la orden
-  function addProductToOrder(productId, productName, productPrice) {
-    // Verificar si el producto ya existe en la tabla
-    const existingRow = document.querySelector(`tr[data-producto-id="${productId}"]`);
-    if (existingRow) {
-      // Si ya existe, incrementamos la cantidad
-      const quantityInput = existingRow.querySelector('.quantity-input');
-      quantityInput.value = parseInt(quantityInput.value) + 1;
-    } else {
-      // Si no existe, creamos una nueva fila
-      const tbody = document.getElementById('orderEditList');
-      const row = document.createElement('tr');
-      row.setAttribute('data-producto-id', productId);
-      row.innerHTML = `
-        <td>${productName}</td>
-        <td>
-          <input type="number" class="form-control form-control-sm quantity-input"
-                 value="1" min="1">
-        </td>
-        <td>
-          <button type="button" class="btn btn-danger btn-sm"
-                  onclick="removeProductRow(this)">Eliminar</button>
-        </td>
-      `;
-      tbody.appendChild(row);
-    }
-  }
-
-  // Elimina la fila correspondiente a un producto de la orden
-  function removeProductRow(button) {
-    const row = button.closest('tr');
-    row.parentNode.removeChild(row);
-  }
-
-  // Obtiene el token CSRF
-  function getCsrfToken() {
-    return document.querySelector("input[name='csrf_token']").value;
-  }
-
-  // Envía la data actualizada de la orden al backend
-  function submitOrderUpdate(ordenId) {
-    const rows = document.querySelectorAll("#orderEditList tr");
-    let products = [];
-    rows.forEach(row => {
-      const productId = row.getAttribute("data-producto-id");
-      const quantityInput = row.querySelector(".quantity-input");
-      const quantity = parseInt(quantityInput.value);
-      if (productId && quantity > 0) {
-        products.push({ producto_id: productId, cantidad: quantity });
-      }
-    });
-
-    const orderData = {
-      // Ajusta "order.usuario_id" según tu caso
-      usuario_id: "{{ order.usuario_id }}",
-      products: products
-    };
-
-    fetch(`/orders/${ordenId}/update`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCsrfToken()
-      },
-      credentials: "same-origin",
-      body: JSON.stringify(orderData)
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.success) {
-        alert("Orden actualizada exitosamente");
-        window.location.href = "/orders";
-      } else {
-        alert("Error: " + data.message);
-      }
-    })
-    .catch(error => {
-      console.error("Error:", error);
-      alert("Error inesperado al actualizar la orden");
-    });
-  }
-</script>
+  <script>
+    // Jinja inyecta el valor real de order.usuario_id en la variable global
+    window.USER_ID = {{ order.usuario_id }};
+  </script>
+  <script src="{{ url_for('static', filename='js/edit_order.js') }}"></script>
 {% endblock %}
