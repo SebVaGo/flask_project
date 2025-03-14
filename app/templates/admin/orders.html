@@ -46,6 +46,7 @@
           <button class="btn btn-warning btn-sm" onclick="deleteOrder('{{ order.orden_id }}')">
             Eliminar Orden
           </button>
+          <a href="{{ url_for('order.edit_order', orden_id=order.orden_id) }}" class="btn btn-info btn-sm">Editar</a>
         </td>
       </tr>
       {% endfor %}

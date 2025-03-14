@@ -6,6 +6,10 @@ order_controller = OrderController()
 
 order_bp.route("/orders", methods=["POST"])(order_controller.create_order)
 order_bp.route("/orders", methods=["GET"])(order_controller.list_orders)
+order_bp.route("/orders/<int:orden_id>/edit", methods=["GET"])(order_controller.edit_order)
 order_bp.route("/orders/<int:orden_id>/<int:producto_id>/delete", methods=["DELETE"])(order_controller.delete_product)
 order_bp.route("/orders/<int:orden_id>/delete", methods=["DELETE"])(order_controller.delete_order)
 order_bp.route("/orders/<int:orden_id>/<int:producto_id>/update", methods=["PUT"])(order_controller.update_quantity)
+order_bp.route("/orders/<int:orden_id>/<int:producto_id>/add", methods=["POST"])(order_controller.add_product)
+
+order_bp.route("/orders/<int:orden_id>/update", methods=["PUT"])(order_controller.update_order)
