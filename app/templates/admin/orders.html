@@ -3,57 +3,60 @@
 {% block title %}Lista de Compras{% endblock %}
 
 {% block head %}
-{{ super() }}
+  {{ super() }}
 {% endblock %}
 
 {% block content %}
 <div class="container mt-5">
-    <h2 class="text-center mb-4">Lista de Compras</h2>
+  <h2 class="text-center mb-4">Lista de Compras</h2>
 
-    <form id="csrfForm">
-        {{ form.hidden_tag() }}
-    </form>
+  <form id="csrfForm">
+    {{ form.hidden_tag() }}
+  </form>
 
-    {% if orders %}
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>ID de Orden</th>
-                <th>Usuario</th>
-                <th>Producto</th>
-                <th>Cantidad</th>
-                <th>Fecha</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for order in orders %}
-            <tr>
-                <td>{{ order.orden_id }}</td>
-                <td>{{ order.usuario_nombre }}</td>
-                <td>{{ order.producto_nombre }}</td>
-                <td>
-                    <input type="number" value="{{ order.cantidad }}" min="1"
-                           class="form-control form-control-sm"
-                           onchange="updateQuantity('{{ order.orden_id }}', '{{ order.producto_id }}', this.value)">
-                </td>                
-                <td>{{ order.fecha_creacion.strftime('%Y-%m-%d %H:%M') }}</td>
-                <td>
-                    <button class="btn btn-danger btn-sm" onclick="deleteProduct('{{ order.orden_id }}', '{{ order.producto_id }}')">
-                        Eliminar
-                    </button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p class="text-center">No hay compras registradas.</p>
-    {% endif %}
+  {% if orders %}
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>ID de Orden</th>
+        <th>Usuario</th>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Fecha</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr>
+        <td>{{ order.orden_id }}</td>
+        <td>{{ order.usuario_nombre }}</td>
+        <td>{{ order.producto_nombre }}</td>
+        <td>
+          <input type="number" value="{{ order.cantidad }}" min="1"
+                 class="form-control form-control-sm"
+                 onchange="updateQuantity('{{ order.orden_id }}', '{{ order.producto_id }}', this.value)">
+        </td>
+        <td>{{ order.fecha_creacion.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduct('{{ order.orden_id }}', '{{ order.producto_id }}')">
+            Eliminar Producto
+          </button>
+          <!-- Botón para eliminar toda la orden -->
+          <button class="btn btn-warning btn-sm" onclick="deleteOrder('{{ order.orden_id }}')">
+            Eliminar Orden
+          </button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-center">No hay compras registradas.</p>
+  {% endif %}
 </div>
-
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='js/orders.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/orders.js') }}"></script>
 {% endblock %}

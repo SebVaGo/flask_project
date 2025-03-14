@@ -10,7 +10,6 @@ from app.services.users.user_save_service import UserSaveService
 class UserService:
 
     def __init__(self):
-
         self.password_service = PasswordService()
         self.client_type_service = ClientTypeService()
         self.user_model = UserModel()
