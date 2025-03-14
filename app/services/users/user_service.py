@@ -1,20 +1,20 @@
 import logging
-
 from app.config import db
-
 from app.models.user_model import UserModel
 from app.models.order_model import OrderModel
-
 from app.services.users.client_type_service import ClientTypeService
 from app.services.users.password_service import PasswordService
+from app.services.users.user_save_service import UserSaveService
 
 
 class UserService:
 
     def __init__(self):
+
         self.password_service = PasswordService()
         self.client_type_service = ClientTypeService()
         self.user_model = UserModel()
+        self.user_save_service = UserSaveService(self.client_type_service, self.password_service)
 
     def get_all_users(self):
         try:
@@ -29,58 +29,9 @@ class UserService:
         except Exception as e:
             logging.error(f"Error al obtener usuario {user_id}: {str(e)}")
             return None
-
-    def create_user(self, data):
-        try:
-            if UserModel.query.filter_by(correo=data["correo"]).first():
-                return {"success": False, "message": "El correo ya está en uso."}
-
-            tipo_cliente = self.client_type_service.get_type_by_id(data["tipo_cliente_id"])
-            if not tipo_cliente:
-                return {"success": False, "message": "El tipo de cliente no existe"}
-
-            password = data.pop("password")
-            user = UserModel(**data, status="activo")
-            db.session.add(user)
-            db.session.flush()
-
-            self.password_service.create_password(user.id, password)
-            db.session.commit()
-            return {"success": True, "message": "Usuario registrado exitosamente"}
-        except Exception as e:
-            db.session.rollback()
-            logging.error(f"Error inesperado en UserService: {str(e)}")
-            return {"success": False, "message": "Error interno del servidor"}
-
-    def update_user(self, user_id, data):
-        try:
-            usuario = UserModel.query.get(user_id)
-            if not usuario:
-                return {"success": False, "message": "Usuario no encontrado."}, 404
-
-            nuevo_correo = data.get("correo")
-            if nuevo_correo and nuevo_correo != usuario.correo:
-                if UserModel.query.filter_by(correo=nuevo_correo).first():
-                    return {"success": False, "message": "El correo ya está en uso por otro usuario."}, 400
-
-            if "tipo_cliente_id" in data and not self.client_type_service.get_type_by_id(data["tipo_cliente_id"]):
-                return {"success": False, "message": "Tipo de cliente inválido."}, 400
-
-            nueva_password = data.pop("nueva_password", None)
-
-            for key, value in data.items():
-                if hasattr(usuario, key) and value:
-                    setattr(usuario, key, value)
-
-            if nueva_password:
-                self.password_service.update_password(user_id, nueva_password)
-
-            db.session.commit()
-            return {"success": True, "message": "Usuario actualizado correctamente."}, 200
-        except Exception as e:
-            db.session.rollback()
-            logging.error(f"Error al actualizar usuario {user_id}: {e}")
-            return {"success": False, "message": "Error interno del servidor."}, 500
+    
+    def save_user(self, data, user_id=None):
+        return self.user_save_service.save_user(data, user_id)
 
     def delete_user(self, user_id):
         usuario = self.user_model.query.get(user_id)

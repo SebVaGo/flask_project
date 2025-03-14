@@ -20,7 +20,8 @@ class UserEditController(BaseUserController):
                 return self.json_response(False, "Errores de validación", errors=errors, status=400)
 
             data = {key: value for key, value in form.data.items() if key not in ["submit", "csrf_token"]}
-            resultado, status_code = self.user_service.update_user(user_id, data)
+            resultado, status_code = self.user_service.save_user(data, user_id)
+            
             return self.json_response(resultado["success"], resultado["message"], status=status_code)
 
         return self.render_user_form(form, template="edit_user.html", user=user)

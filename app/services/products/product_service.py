@@ -2,6 +2,7 @@ from app.config import db
 from app.models.product_model import ProductModel
 from app.services.products.category_service import CategoryService
 from app.services.products.order_cleanup_service import OrderCleanupService
+from app.services.products.product_save_service import ProductSaveService
 from app.utils.db_session_manager import DBSessionManager
 from sqlalchemy import update
 
@@ -12,20 +13,11 @@ class ProductService:
         self.db_manager = DBSessionManager()
         self.category_service = CategoryService()
         self.order_cleanup_service = OrderCleanupService()
+        self.product_save_service = ProductSaveService(self.category_service)
         self.product_model = ProductModel
 
-    def create_product(self, data):
-        categoria = self.category_service.get_category_by_id(data["categoria_id"])
-        if not categoria:
-            return {"success": False, "message": "Categoría no válida"}
-
-        try:
-            product = self.product_model(**data)
-            db.session.add(product)
-            self.db_manager.commit()
-            return {"success": True, "message": "Producto creado exitosamente"}
-        except Exception as e:
-            return {"success": False, "message": f"Error al crear el producto: {str(e)}"}
+    def save_product(self, data, product_id=None):
+        return self.product_save_service.save_product(data, product_id)
 
     def get_all_products(self):
         return db.session.query(
@@ -43,18 +35,6 @@ class ProductService:
             self.product_model.nombre,
             self.product_model.precio
         ).join(self.category_service.category_model).filter(self.product_model.id == product_id).first()
-
-    def update_product(self, product_id, data):
-        try:
-            db.session.execute(
-                update(self.product_model)
-                .where(self.product_model.id == product_id)
-                .values(**data)
-            )
-            self.db_manager.commit()
-            return {"success": True, "message": "Producto actualizado exitosamente"}
-        except Exception as e:
-            return {"success": False, "message": f"Error al actualizar el producto: {str(e)}"}
 
     def delete_product(self, product_id):
         product = self.product_model.query.get(product_id)

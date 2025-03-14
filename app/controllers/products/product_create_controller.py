@@ -30,5 +30,6 @@ class ProductCreateController(BaseProductController):
             "precio": form.precio.data
         }
 
-        result = self.product_service.create_product(data)
-        return self.json_response(result["success"], result["message"], status=200 if result["success"] else 400)
+        # Se llama a la función unificada sin product_id para creación
+        result, status_code = self.product_service.save_product(data)
+        return self.json_response(result["success"], result["message"], status=status_code)
