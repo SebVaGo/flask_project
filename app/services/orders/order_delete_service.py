@@ -1,8 +1,8 @@
 import logging
 from app.config import db
-
 from app.services.orders.base_order_service import BaseOrderService
 from app.services.orders.order_get_service import OrderQueryService
+
 
 class OrderManagementService(BaseOrderService):
 
@@ -15,9 +15,14 @@ class OrderManagementService(BaseOrderService):
         try:
             if producto_id is not None:
                 # Eliminar un producto específico de la orden.
-                order_item = self.order_query_service.get_order_item(session, orden_id, producto_id)
+                order_item = self.order_query_service.get_order_item(
+                    session, orden_id, producto_id
+                )
                 if not order_item:
-                    return {"success": False, "message": "Producto en la orden no encontrado."}, 404
+                    return (
+                        {"success": False, "message": "Producto en la orden no encontrado."},
+                        404,
+                    )
                 session.delete(order_item)
                 message = "Producto eliminado correctamente de la orden."
             else:
@@ -34,8 +39,7 @@ class OrderManagementService(BaseOrderService):
         except Exception as e:
             session.rollback()
             logging.error(f"Error al eliminar la orden o el producto: {str(e)}")
-            return {"success": False, "message": f"Error al eliminar: {str(e)}"}, 500
+            return {"success": False, "message": "Error interno del servidor"}, 500
 
         finally:
             session.close()
-

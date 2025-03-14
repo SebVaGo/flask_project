@@ -14,10 +14,12 @@ class ProductSaveService(BaseProductService):
         session = db.session
         try:
             is_update = product_id is not None
+
             # 1. Validar la categoría
             error, status_code = self.category_service.validate_category(data)
             if error:
                 return error, status_code
+
             # 2. Obtener o crear el producto
             if is_update:
                 product, error, status_code = self.get_existing_product(session, product_id)
@@ -40,21 +42,23 @@ class ProductSaveService(BaseProductService):
             session.rollback()
             logging.error(f"Error al guardar el producto: {str(e)}")
             return (
-                {"success": False, "message": f"Error al guardar el producto: {str(e)}"},
+                {"success": False, "message": "Error interno del servidor"},
                 500,
             )
         finally:
             session.close()
 
     def _update_product(self, product, data):
-
         for key, value in data.items():
             if hasattr(product, key) and value is not None:
                 setattr(product, key, value)
 
     def _create_new_product(self, session, data):
-
-        product = self.product_model(**data)
-        session.add(product)
-        session.flush() 
-        return product
+        try:
+            product = self.product_model(**data)
+            session.add(product)
+            session.flush()
+            return product
+        except Exception as e:
+            logging.error(f"Error in _create_new_product: {str(e)}")
+            raise Exception("Error al crear un nuevo producto.")

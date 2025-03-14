@@ -27,9 +27,13 @@ class UserService(BaseUserService):
         except Exception as e:
             logging.error(f"Error al obtener usuario {user_id}: {str(e)}")
             return None
-    
+
     def save_user(self, data, user_id=None):
-        return self.user_save_service.save_user(data, user_id)
+        try:
+            return self.user_save_service.save_user(data, user_id)
+        except Exception as e:
+            logging.error(f"Error en save_user: {str(e)}")
+            return {"success": False, "message": "Error interno del servidor"}, 500
 
     def delete_user(self, user_id):
         usuario = self.user_model.query.get(user_id)
@@ -38,7 +42,6 @@ class UserService(BaseUserService):
 
         try:
             db.session.query(self.user_model).filter_by(id=user_id).delete()
-
             db.session.delete(usuario)
             db.session.commit()
             return {"success": True, "message": "Usuario eliminado correctamente"}

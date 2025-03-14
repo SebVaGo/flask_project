@@ -1,7 +1,9 @@
+import logging
 from app.utils.db_session_manager import DBSessionManager
 from app.models.categoy_product_model import CategoryModel
 from app.models.order_model import OrderModel
 from app.models.product_model import ProductModel
+
 
 class BaseProductService:
     def __init__(self):
@@ -11,7 +13,11 @@ class BaseProductService:
         self.product_model = ProductModel
 
     def get_existing_product(self, session, product_id):
-        product = session.query(self.product_model).get(product_id)
-        if not product:
-            return None, {"success": False, "message": "Producto no encontrado"}, 404
-        return product, None, None
+        try:
+            product = session.query(self.product_model).get(product_id)
+            if not product:
+                return None, {"success": False, "message": "Producto no encontrado"}, 404
+            return product, None, None
+        except Exception as e:
+            logging.error(f"Error in get_existing_product: {str(e)}")
+            return None, {"success": False, "message": "Error interno del servidor"}, 500

@@ -1,3 +1,4 @@
+import logging
 from app.config import db
 from app.services.products.product_save_service import ProductSaveService
 from app.services.products.base_product_service import BaseProductService
@@ -10,29 +11,40 @@ class ProductService(BaseProductService):
         super().__init__()
         self.product_save_service = ProductSaveService()
 
-    #Crear o acutalizar
     def save_product(self, data, product_id=None):
-        return self.product_save_service.save_product(data, product_id)
+        try:
+            return self.product_save_service.save_product(data, product_id)
+        except Exception as e:
+            logging.error(f"Error in save_product: {str(e)}")
+            return {"success": False, "message": "Error interno del servidor"}, 500
 
-    #Devolver todos los productos
     def get_all_products(self):
-        return db.session.query(
-            self.product_model.id,
-            self.product_model.nombre,
-            self.product_model.precio,
-            self.category_model.nombre.label("categoria")
-        ).join(self.category_model).all()
+        try:
+            products = db.session.query(
+                self.product_model.id,
+                self.product_model.nombre,
+                self.product_model.precio,
+                self.category_model.nombre.label("categoria")
+            ).join(self.category_model).all()
+            return products
+        except Exception as e:
+            logging.error(f"Error in get_all_products: {str(e)}")
+            return []
 
     def get_product_by_id(self, product_id):
-        return db.session.query(
-            self.product_model.id,
-            self.product_model.categoria_id,
-            self.category_model.nombre.label("categoria"),
-            self.product_model.nombre,
-            self.product_model.precio
-        ).join(self.category_model).filter(self.product_model.id == product_id).first()
+        try:
+            product = db.session.query(
+                self.product_model.id,
+                self.product_model.categoria_id,
+                self.category_model.nombre.label("categoria"),
+                self.product_model.nombre,
+                self.product_model.precio
+            ).join(self.category_model).filter(self.product_model.id == product_id).first()
+            return product
+        except Exception as e:
+            logging.error(f"Error in get_product_by_id: {str(e)}")
+            return None
 
-    
     def delete_product(self, product_id):
         product = self.product_model.query.get(product_id)
         if not product:
@@ -44,7 +56,12 @@ class ProductService(BaseProductService):
             self.db_manager.commit()
             return {"success": True, "message": "Producto eliminado correctamente"}
         except Exception as e:
-            return {"success": False, "message": f"Error al eliminar el producto: {str(e)}"}
+            db.session.rollback()
+            logging.error(f"Error in delete_product: {str(e)}")
+            return {"success": False, "message": "Error interno del servidor"}
 
     def delete_orders_by_product(self, product_id):
-        db.session.query(self.order_model).filter_by(producto_id=product_id).delete()
+        try:
+            db.session.query(self.order_model).filter_by(producto_id=product_id).delete()
+        except Exception as e:
+            logging.error(f"Error in delete_orders_by_product: {str(e)}")
