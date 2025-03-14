@@ -1,16 +1,20 @@
 from app.config import db
-from app.models.order_model import OrderModel
-from app.models.product_model import ProductModel
-from app.models.user_model import UserModel
+from app.services.orders.base_order_service import BaseOrderService
 
 
-class OrderQueryService:
+class OrderQueryService(BaseOrderService):
 
     def __init__(self):
-        self.order_model = OrderModel
-        self.product_model = ProductModel
-        self.user_model = UserModel
+        super().__init__()
 
+    def get_order_item(self, session, orden_id, producto_id):
+        return session.query(self.order_model).filter_by(
+            orden_id=orden_id, producto_id=producto_id
+        ).first()
+    
+    def get_all_order_items(self, session, orden_id):
+        return session.query(self.order_model).filter_by(orden_id=orden_id).all()
+    
     def get_all_orders(self):
         return (
             db.session.query(
@@ -52,7 +56,6 @@ class OrderQueryService:
             "usuario_id": rows[0].usuario_id,
             "usuario_nombre": rows[0].usuario_nombre,
             "fecha_creacion": rows[0].fecha_creacion,
-            # Cambia "items" por "productos" para evitar conflicto:
             "productos": []
         }
 
@@ -62,5 +65,7 @@ class OrderQueryService:
                 "producto_nombre": row.producto_nombre,
                 "cantidad": row.cantidad
             })
-
         return order_data
+
+
+    

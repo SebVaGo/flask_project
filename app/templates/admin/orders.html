@@ -32,16 +32,9 @@
         <td>{{ order.orden_id }}</td>
         <td>{{ order.usuario_nombre }}</td>
         <td>{{ order.producto_nombre }}</td>
-        <td>
-          <input type="number" value="{{ order.cantidad }}" min="1"
-                 class="form-control form-control-sm"
-                 onchange="updateQuantity('{{ order.orden_id }}', '{{ order.producto_id }}', this.value)">
-        </td>
+        <td>{{ order.cantidad }}</td>
         <td>{{ order.fecha_creacion.strftime('%Y-%m-%d %H:%M') }}</td>
         <td>
-          <button class="btn btn-danger btn-sm" onclick="deleteProduct('{{ order.orden_id }}', '{{ order.producto_id }}')">
-            Eliminar Producto
-          </button>
           <!-- Botón para eliminar toda la orden -->
           <button class="btn btn-warning btn-sm" onclick="deleteOrder('{{ order.orden_id }}')">
             Eliminar Orden

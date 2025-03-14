@@ -1,28 +1,26 @@
 import logging
 from app.config import db
-from app.models.product_model import ProductModel
+from app.services.products.base_product_service import BaseProductService
+from app.services.products.category_service import CategoryService
 
 
-class ProductSaveService:
+class ProductSaveService(BaseProductService):
 
-    def __init__(self, category_service):
-
-        self.category_service = category_service
+    def __init__(self):
+        super().__init__()
+        self.category_service = CategoryService()
 
     def save_product(self, data, product_id=None):
-
         session = db.session
         try:
             is_update = product_id is not None
-
             # 1. Validar la categoría
-            error, status_code = self._validate_category(data)
+            error, status_code = self.category_service.validate_category(data)
             if error:
                 return error, status_code
-
             # 2. Obtener o crear el producto
             if is_update:
-                product, error, status_code = self._get_existing_product(session, product_id)
+                product, error, status_code = self.get_existing_product(session, product_id)
                 if error:
                     return error, status_code
                 self._update_product(product, data)
@@ -48,20 +46,6 @@ class ProductSaveService:
         finally:
             session.close()
 
-    def _validate_category(self, data):
-        if "categoria_id" in data:
-            categoria = self.category_service.get_category_by_id(data["categoria_id"])
-            if not categoria:
-                return {"success": False, "message": "Categoría no válida"}, 400
-        return None, None
-
-    def _get_existing_product(self, session, product_id):
-
-        product = session.query(ProductModel).get(product_id)
-        if not product:
-            return None, {"success": False, "message": "Producto no encontrado"}, 404
-        return product, None, None
-
     def _update_product(self, product, data):
 
         for key, value in data.items():
@@ -70,7 +54,7 @@ class ProductSaveService:
 
     def _create_new_product(self, session, data):
 
-        product = ProductModel(**data)
+        product = self.product_model(**data)
         session.add(product)
         session.flush() 
         return product

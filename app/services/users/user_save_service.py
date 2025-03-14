@@ -1,30 +1,25 @@
 import logging
 from app.config import db
-from app.models.user_model import UserModel
 
+from app.services.users.base_user_service import BaseUserService
+from app.services.users.client_type_service import ClientTypeService
+from app.services.users.password_service import PasswordService
 
-class UserSaveService:
+class UserSaveService(BaseUserService):
 
-    def __init__(self, client_type_service, password_service):
-        self.client_type_service = client_type_service
-        self.password_service = password_service
+    def __init__(self):
+        super().__init__()
+        self.client_type_service = ClientTypeService()
+        self.password_service = PasswordService()
 
     def _validate_email(self, session, email, user_id=None):
 
         if email:
-            query = session.query(UserModel).filter_by(correo=email)
+            query = session.query(self.user_model).filter_by(correo=email)
             if user_id is not None:
-                query = query.filter(UserModel.id != user_id)
+                query = query.filter(self.user_model.id != user_id)
             if query.first():
                 return "El correo ya está en uso."
-        return None
-
-    def _validate_client_type(self, data):
-
-        if "tipo_cliente_id" in data:
-            tipo_cliente = self.client_type_service.get_type_by_id(data["tipo_cliente_id"])
-            if not tipo_cliente:
-                return "El tipo de cliente no existe"
         return None
 
     def save_user(self, data, user_id=None):
@@ -44,7 +39,7 @@ class UserSaveService:
                 return error, status_code
 
             # 3. Extraer la contraseña según sea update o create
-            nueva_password = self._extract_password(data, is_update)
+            nueva_password = self.password_service.extract_password(data, is_update)
 
             # 4. Actualizar usuario existente o crear uno nuevo
             if is_update:
@@ -70,7 +65,7 @@ class UserSaveService:
     def _get_user_if_update(self, session, user_id):
 
         if user_id is not None:
-            usuario = session.query(UserModel).get(user_id)
+            usuario = session.query(self.user_model).get(user_id)
             if not usuario:
                 return None, {"success": False, "message": "Usuario no encontrado."}, 404
             return usuario, None, None
@@ -82,15 +77,11 @@ class UserSaveService:
         if email_error:
             return {"success": False, "message": email_error}, 400
 
-        client_error = self._validate_client_type(data)
+        client_error = self.client_type_service.validate_client_type(data)
         if client_error:
             return {"success": False, "message": client_error}, 400
 
         return None, None
-
-    def _extract_password(self, data, is_update):
-
-        return data.pop("nueva_password" if is_update else "password", None)
 
     def _update_existing_user(self, usuario, data):
 
@@ -100,7 +91,7 @@ class UserSaveService:
 
     def _create_new_user(self, session, data):
 
-        usuario = UserModel(**data, status="activo")
+        usuario = self.user_model(**data, status="activo")
         session.add(usuario)
         session.flush()
         return usuario

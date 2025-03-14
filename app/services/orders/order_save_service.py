@@ -1,19 +1,11 @@
 import logging
 
 from app.config import db
-from app.models.order_model import OrderModel
-from app.models.user_model import UserModel
-from app.utils.db_session_manager import DBSessionManager
+from app.services.orders.base_order_service import BaseOrderService
 
-class OrderSaveService:
+class OrderSaveService(BaseOrderService):
     def __init__(self):
-        self.db_manager = DBSessionManager()
-        self.order_model = OrderModel
-        self.user_model = UserModel
-
-    def get_next_order_id(self):
-        last_order = self.order_model.query.order_by(self.order_model.orden_id.desc()).first()
-        return (last_order.orden_id + 1) if last_order else 1
+        super().__init__()
 
     def save_order(self, data, order_id=None):
         session = db.session
@@ -41,7 +33,7 @@ class OrderSaveService:
                 # Eliminar líneas actuales de la orden
                 session.query(self.order_model).filter_by(orden_id=order_id).delete()
             else:
-                order_id = self.get_next_order_id()
+                order_id = self._get_next_order_id()
 
             # 4. Crear las nuevas líneas de orden
             orders_to_add = [

@@ -52,7 +52,7 @@ function addProductToOrder(productId, productName, productPrice) {
         products: products
       };
   
-    fetch(`/orders/${ordenId}/update`, {
+    fetch(`/orders/${ordenId}/edit`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",

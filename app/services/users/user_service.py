@@ -1,30 +1,29 @@
 import logging
 from app.config import db
-from app.models.user_model import UserModel
-from app.models.order_model import OrderModel
+from app.services.users.base_user_service import BaseUserService
 from app.services.users.client_type_service import ClientTypeService
 from app.services.users.password_service import PasswordService
 from app.services.users.user_save_service import UserSaveService
 
 
-class UserService:
+class UserService(BaseUserService):
 
     def __init__(self):
+        super().__init__()
         self.password_service = PasswordService()
         self.client_type_service = ClientTypeService()
-        self.user_model = UserModel()
-        self.user_save_service = UserSaveService(self.client_type_service, self.password_service)
+        self.user_save_service = UserSaveService()
 
     def get_all_users(self):
         try:
-            return UserModel.query.all()
+            return self.user_model.query.all()
         except Exception as e:
             logging.error(f"Error al obtener usuarios: {str(e)}")
             return []
 
     def get_user_by_id(self, user_id):
         try:
-            return UserModel.query.get(user_id)
+            return self.user_model.query.get(user_id)
         except Exception as e:
             logging.error(f"Error al obtener usuario {user_id}: {str(e)}")
             return None
@@ -38,7 +37,7 @@ class UserService:
             return {"success": False, "message": "Usuario no encontrado"}
 
         try:
-            db.session.query(OrderModel).filter_by(usuario_id=user_id).delete()
+            db.session.query(self.user_model).filter_by(id=user_id).delete()
 
             db.session.delete(usuario)
             db.session.commit()

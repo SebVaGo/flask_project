@@ -1,8 +1,5 @@
-from app.controllers.orders.order_create_controller import OrderCreateController
-from app.controllers.orders.order_list_controller import OrderListController
-from app.controllers.orders.order_manage_controller import OrderManageController
-from app.controllers.orders.order_edit_controller import OrderUpdateController
+from app.controllers.orders.order_crud_controller import OrderCrudController
 
 
-class OrderController(OrderCreateController, OrderListController, OrderManageController, OrderUpdateController):
+class OrderController(OrderCrudController):
     pass
