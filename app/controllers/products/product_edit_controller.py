@@ -28,5 +28,9 @@ class ProductEditController(BaseProductController):
             "precio": form.precio.data
         }
 
-        result = self.product_service.update_product(product_id, data)
-        return self.json_response(result["success"], result["message"], status=200 if result["success"] else 400)
+        result, status_code = self.product_service.save_product(data, product_id)
+        if result["success"]:
+            flash("Producto actualizado correctamente.", "success")
+        else:
+            flash(result["message"], "danger")
+        return self.json_response(result["success"], result["message"], status=status_code)

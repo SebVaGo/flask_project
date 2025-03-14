@@ -16,13 +16,14 @@ class UserCreateController(BaseUserController):
                 return self.json_response(False, "Errores de validación", errors=errors, status=400)
 
             data = {key: value for key, value in form.data.items() if key not in ["submit", "csrf_token"]}
-            resultado = self.user_service.create_user(data)
+            resultado, status_code = self.user_service.save_user(data)
 
             if resultado["success"]:
                 flash("Usuario creado correctamente.", "success")
-                return self.json_response(True, "Usuario creado correctamente.", status=201)
+                return self.json_response(True, "Usuario creado correctamente.", status=status_code)
+            
 
             flash(resultado["message"], "danger")
-            return self.json_response(False, resultado["message"], status=400)
+            return self.json_response(False, resultado["message"], status=status_code)
 
         return self.render_user_form(form)
