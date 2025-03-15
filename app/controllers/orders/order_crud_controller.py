@@ -48,7 +48,7 @@ class OrderCrudController(BaseOrderController):
                 form = CSRFForm()
                 productos_disponibles = self.product_query_service.get_all_products()
                 return self.render(
-                    "admin/edit_order.html",
+                    "admin/order_form.html",
                     order=order,
                     form=form,
                     productos_disponibles=productos_disponibles,
@@ -56,7 +56,7 @@ class OrderCrudController(BaseOrderController):
             except Exception as e:
                 logging.error(f"Error en GET de edit_order: {str(e)}")
                 flash("Ocurrió un error al cargar la orden.", "danger")
-                return self.render("admin/edit_order.html", order=None, form=CSRFForm(), productos_disponibles=[])
+                return self.render("admin/order_form.html", order=None, form=CSRFForm(), productos_disponibles=[])
         try:
             data = request.get_json()
             if not data:

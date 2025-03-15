@@ -1,0 +1,108 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+  {% if order %}
+    Editar Orden #{{ order.orden_id }}
+  {% else %}
+    Crear Orden
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} mt-2">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <h2 class="mb-4">
+    {% if order %}
+      Editar Orden #{{ order.orden_id }}
+    {% else %}
+      Crear Orden
+    {% endif %}
+  </h2>
+
+  <form id="orderForm">
+    {{ form.hidden_tag() }}
+
+    <h4>Productos en la Orden</h4>
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Cantidad</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="orderEditList">
+        {% if order %}
+          {% for item in order.productos %}
+          <tr data-producto-id="{{ item.producto_id }}">
+            <td>{{ item.producto_nombre }}</td>
+            <td>
+              <input type="number" class="form-control form-control-sm quantity-input" 
+                     value="{{ item.cantidad }}" min="1">
+            </td>
+            <td>
+              <button type="button" class="btn btn-danger btn-sm" onclick="removeProductRow(this)">Eliminar</button>
+            </td>
+          </tr>
+          {% endfor %}
+        {% endif %}
+      </tbody>
+    </table>
+
+    <button type="button" class="btn btn-success" onclick="submitOrder()">
+      {% if order %}Guardar Cambios{% else %}Crear Orden{% endif %}
+    </button>
+  </form>
+
+  <h4 class="mt-5">Productos Disponibles</h4>
+  {% if productos_disponibles %}
+    <table class="table table-bordered">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for product in productos_disponibles %}
+        <tr>
+          <td>{{ product.id }}</td>
+          <td>{{ product.nombre }}</td>
+          <td>{{ product.categoria }}</td>
+          <td>S/ {{ "%.2f"|format(product.precio) }}</td>
+          <td>
+            <button type="button" class="btn btn-primary btn-sm"
+                    onclick="addProductToOrder('{{ product.id }}', '{{ product.nombre }}')">
+              Agregar
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>No hay productos disponibles para agregar.</p>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  var isEdit = {% if order %}true{% else %}false{% endif %};
+  var orderId = {% if order %}{{ order.orden_id }}{% else %}null{% endif %};
+  var userId = {% if order %}{{ order.usuario_id }}{% else %}{{ current_user.id or 0 }}{% endif %};
+</script>
+<script src="{{ url_for('static', filename='js/order_form.js') }}"></script>
+{% endblock %}

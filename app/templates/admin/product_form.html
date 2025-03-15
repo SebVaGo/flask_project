@@ -1,7 +1,11 @@
 {% extends "bootstrap/base.html" %}
 
 {% block title %}
-  {% if product %}Editar Producto{% else %}Crear Producto{% endif %}
+  {% if product %}
+    Editar Producto
+  {% else %}
+    Crear Producto
+  {% endif %}
 {% endblock %}
 
 {% block head %}
@@ -10,47 +14,50 @@
 
 {% block content %}
 <div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card shadow p-4">
-                <h2 class="text-center mb-4">
-                    {% if product %}Editar Producto{% else %}Crear Producto{% endif %}
-                </h2>
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow p-4">
+        <h2 class="text-center mb-4">
+          {% if product %}
+            Editar Producto
+          {% else %}
+            Crear Producto
+          {% endif %}
+        </h2>
 
-                <div id="messages"></div>
+        <div id="messages"></div>
 
-                <form id="productForm" 
-                      data-url="{% if product %}{{ url_for('admin.edit_product', product_id=product.id) }}{% else %}{{ url_for('admin.create_product') }}{% endif %}"
-                      data-redirect="{{ url_for('admin.list_products') }}">
+        <form id="productForm"
+              data-url="{% if product %}{{ url_for('admin.edit_product', product_id=product.id) }}{% else %}{{ url_for('admin.create_product') }}{% endif %}"
+              data-redirect="{{ url_for('admin.list_products') }}">
+          {{ form.hidden_tag() }}
 
-                    {{ form.hidden_tag() }}  
+          <div class="mb-3">
+            {{ form.nombre.label(class="form-label") }}
+            {{ form.nombre(class="form-control") }}
+            <div class="invalid-feedback" id="error-nombre"></div>
+          </div>
 
-                    <div class="mb-3">
-                        {{ form.nombre.label(class="form-label") }}
-                        {{ form.nombre(class="form-control") }}
-                        <div class="invalid-feedback" id="error-nombre"></div>
-                    </div>
+          <div class="mb-3">
+            {{ form.categoria_id.label(class="form-label") }}
+            {{ form.categoria_id(class="form-control") }}
+            <div class="invalid-feedback" id="error-categoria_id"></div>
+          </div>
 
-                    <div class="mb-3">
-                        {{ form.categoria_id.label(class="form-label") }}
-                        {{ form.categoria_id(class="form-control") }}
-                        <div class="invalid-feedback" id="error-categoria_id"></div>
-                    </div>
+          <div class="mb-3">
+            {{ form.precio.label(class="form-label") }}
+            {{ form.precio(class="form-control") }}
+            <div class="invalid-feedback" id="error-precio"></div>
+          </div>
 
-                    <div class="mb-3">
-                        {{ form.precio.label(class="form-label") }}
-                        {{ form.precio(class="form-control") }}
-                        <div class="invalid-feedback" id="error-precio"></div>
-                    </div>
-
-                    <button type="button" class="btn btn-primary w-100 mb-2" onclick="submitProduct()">
-                        {% if product %}Actualizar Producto{% else %}Guardar Producto{% endif %}
-                    </button>
-                    <a href="{{ url_for('admin.list_products') }}" class="btn btn-secondary w-100">Cancelar</a>
-                </form>
-            </div>
-        </div>
+          <button type="button" class="btn btn-primary w-100 mb-2" onclick="submitProduct()">
+            {% if product %}Actualizar Producto{% else %}Guardar Producto{% endif %}
+          </button>
+          <a href="{{ url_for('admin.list_products') }}" class="btn btn-secondary w-100">Cancelar</a>
+        </form>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
 

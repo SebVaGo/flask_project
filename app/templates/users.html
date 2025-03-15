@@ -8,7 +8,7 @@
     <a href="{{ url_for('user.create_user') }}" class="btn btn-primary mb-3">Crear Usuario</a>
     
     <form id="csrfForm">
-        {{ form.hidden_tag() }}  
+        {{ form.hidden_tag() }}
     </form>
 
     {% if users %}
@@ -41,34 +41,9 @@
     <p class="text-center">No hay usuarios registrados.</p>
     {% endif %}
 </div>
+{% endblock %}
 
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll(".delete-user").forEach(button => {
-        button.addEventListener("click", function() {
-            let userId = this.getAttribute("data-id");
-            let csrfToken = document.querySelector('input[name="csrf_token"]').value;
-
-            if (confirm("¿Estás seguro de que deseas eliminar este usuario?")) {
-                fetch(`/users/${userId}/delete`, {
-                    method: "DELETE",
-                    headers: {
-                        "X-CSRFToken": csrfToken  
-                    }
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert("Usuario eliminado correctamente.");
-                        location.reload();
-                    } else {
-                        alert("Error: " + data.message);
-                    }
-                })
-                .catch(error => console.error("Error:", error));
-            }
-        });
-    });
-});
-</script>
+{% block scripts %}
+<!-- Enlazamos el archivo JS externo -->
+<script src="{{ url_for('static', filename='js/users.js') }}"></script>
 {% endblock %}

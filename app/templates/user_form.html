@@ -1,0 +1,113 @@
+{% extends "bootstrap/base.html" %}
+
+{% block title %}
+  {% if user %}
+    Editar Usuario
+  {% else %}
+    Registro de Usuario
+  {% endif %}
+{% endblock %}
+
+{% block head %}
+  {{ super() }}
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow p-4">
+        <h2 class="text-center mb-4">
+          {% if user %}
+            Editar Usuario
+          {% else %}
+            Registro de Usuario
+          {% endif %}
+        </h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <div id="messages"></div>
+
+        <form id="userForm" method="POST" 
+              data-url="{% if user %}{{ url_for('user.edit_user', user_id=user.id) }}{% else %}{{ url_for('user.create_user') }}{% endif %}"
+              data-redirect="{{ url_for('user.get_users') }}">
+          {{ form.hidden_tag() }}
+
+          <div class="mb-3">
+            {{ form.primer_nombre.label(class="form-label") }}
+            {{ form.primer_nombre(class="form-control") }}
+            <div class="invalid-feedback"></div>
+          </div>
+
+          <div class="mb-3">
+            {{ form.segundo_nombre.label(class="form-label") }}
+            {{ form.segundo_nombre(class="form-control") }}
+            <div class="invalid-feedback"></div>
+          </div>
+
+          <div class="mb-3">
+            {{ form.apellido_paterno.label(class="form-label") }}
+            {{ form.apellido_paterno(class="form-control") }}
+            <div class="invalid-feedback"></div>
+          </div>
+
+          <div class="mb-3">
+            {{ form.apellido_materno.label(class="form-label") }}
+            {{ form.apellido_materno(class="form-control") }}
+            <div class="invalid-feedback"></div>
+          </div>
+
+          <div class="mb-3">
+            {{ form.correo.label(class="form-label") }}
+            {{ form.correo(class="form-control") }}
+            <div class="invalid-feedback"></div>
+          </div>
+          
+          <div class="mb-3">
+            {{ form.telefono.label(class="form-label") }}
+            {{ form.telefono(class="form-control") }}
+            <div class="invalid-feedback"></div>
+          </div>
+
+          {% if not user %}
+            <div class="mb-3">
+              {{ form.password.label(class="form-label") }}
+              {{ form.password(class="form-control") }}
+              <div class="invalid-feedback"></div>
+            </div>
+          {% else %}
+            <div class="mb-3">
+              {{ form.nueva_password.label(class="form-label") }}
+              {{ form.nueva_password(class="form-control") }}
+              <div class="invalid-feedback"></div>
+            </div>
+          {% endif %}
+
+          <div class="mb-3">
+            {{ form.tipo_cliente_id.label(class="form-label") }}
+            {{ form.tipo_cliente_id(class="form-control") }}
+            <div class="invalid-feedback"></div>
+          </div>
+
+          <button type="button" class="btn btn-primary w-100 mb-2" onclick="submitUserForm()">
+            {% if user %}Actualizar Usuario{% else %}Registrar{% endif %}
+          </button>
+          <a href="{{ url_for('user.get_users') }}" class="btn btn-secondary w-100">Volver al Inicio</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+
+<script src="{{ url_for('static', filename='js/user_form.js') }}"></script>
+{% endblock %}

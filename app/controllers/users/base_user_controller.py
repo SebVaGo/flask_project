@@ -16,5 +16,5 @@ class BaseUserController(ApiController, ViewController):
         client_types = self.client_type_service.get_all_types()
         return [(tipo.id, tipo.nombre) for tipo in client_types]
 
-    def render_user_form(self, form, template="register.html", user=None):
+    def render_user_form(self, form, template="user_form.html", user=None):
         return self.render(template, form=form, user=user)
