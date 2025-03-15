@@ -14,43 +14,43 @@ class UserCrudController(BaseUserController):
         try:
             users = self.user_service.get_all_users()
             form = CSRFForm()
-            return self.render("users.html", users=users, form=form)
+            return self.render_list(users=users, form=form)
         except Exception as e:
             logging.error(f"Error in get_users: {str(e)}")
             flash("Ocurrió un error al obtener los usuarios.", "danger")
-            return self.render("users.html", users=[], form=CSRFForm())
+            return self.render_list(users=[], form=CSRFForm())
 
     def create_user(self):
         try:
             form = UserForm()
             form.tipo_cliente_id.choices = self.get_client_types()
 
-            if request.method == "POST":
-                errors = self.validate_form(form)
-                if errors:
-                    # flash("Errores de validación", "danger")
-                    return self.json_response(False, "Errores de validación", errors=errors, status=400)
+            if request.method == "GET":
+                return self.render_user_form(form)
 
-                data = {
-                    key: value
-                    for key, value in form.data.items()
-                    if key not in ["submit", "csrf_token"]
-                }
-                resultado, status_code = self.user_service.save_user(data)
+            errors = self.validate_form(form)
+            if errors:
+                return self.json_response(False, "Errores de validación", errors=errors, status=400)
 
-                if resultado["success"]:
-                    flash("Usuario creado correctamente.", "success")
-                    return self.json_response(True, "Usuario creado correctamente.", status=status_code)
+            data = {
+                key: value
+                for key, value in form.data.items()
+                if key not in ["submit", "csrf_token"]
+            }
+            resultado, status_code = self.user_service.save_user(data)
 
-                flash(resultado["message"], "danger")
-                return self.json_response(False, resultado["message"], status=status_code)
+            if resultado["success"]:
+                flash("Usuario creado correctamente.", "success")
+                return self.json_response(True, "Usuario creado correctamente.", status=status_code)
 
-            return self.render_user_form(form)
+            flash(resultado["message"], "danger")
+            return self.json_response(False, resultado["message"], status=status_code)
+
         except Exception as e:
             logging.error(f"Error in create_user: {str(e)}")
             flash("Ocurrió un error al crear el usuario.", "danger")
             return self.json_response(False, "Error interno del servidor", status=500)
-
+    
     def edit_user(self, user_id):
         try:
             user = self.user_service.get_user_by_id(user_id)
@@ -60,21 +60,21 @@ class UserCrudController(BaseUserController):
             form = UserUpdateForm(obj=user)
             form.tipo_cliente_id.choices = self.get_client_types()
 
-            if request.method == "POST":
-                errors = self.validate_form(form)
-                if errors:
-                    # flash("Errores de validación", "danger")
-                    return self.json_response(False, "Errores de validación", errors=errors, status=400)
+            if request.method == "GET":
+                return self.render_user_form(form, user=user)
 
-                data = {
-                    key: value
-                    for key, value in form.data.items()
-                    if key not in ["submit", "csrf_token"]
-                }
-                resultado, status_code = self.user_service.save_user(data, user_id)
-                return self.json_response(resultado["success"], resultado["message"], status=status_code)
+            errors = self.validate_form(form)
+            if errors:
+                return self.json_response(False, "Errores de validación", errors=errors, status=400)
 
-            return self.render_user_form(form, template="user_form.html", user=user)
+            data = {
+                key: value
+                for key, value in form.data.items()
+                if key not in ["submit", "csrf_token"]
+            }
+            resultado, status_code = self.user_service.save_user(data, user_id)
+            return self.json_response(resultado["success"], resultado["message"], status=status_code)
+
         except Exception as e:
             logging.error(f"Error in edit_user: {str(e)}")
             flash("Ocurrió un error al editar el usuario.", "danger")

@@ -1,5 +1,5 @@
 import logging
-from flask import request, flash, url_for, redirect
+from flask import request, flash
 from app.utils.forms.csrf_form import CSRFForm
 from app.utils.forms.product_form import ProductForm
 from app.controllers.products.base_product_controller import BaseProductController
@@ -11,11 +11,11 @@ class ProductCrudController(BaseProductController):
         try:
             products = self.product_service.get_all_products()
             form = CSRFForm()
-            return self.render("admin/products.html", products=products, form=form)
+            return self.render_list(products=products, form=form)
         except Exception as e:
             logging.error(f"Error en list_products: {str(e)}")
             flash("Ocurrió un error al obtener los productos.", "danger")
-            return self.render("admin/products.html", products=[], form=CSRFForm())
+            return self.render_list(products=[], form=CSRFForm())
 
     def create_product(self):
         """Crea un nuevo producto."""
