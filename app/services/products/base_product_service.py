@@ -11,13 +11,3 @@ class BaseProductService:
         self.category_model = CategoryModel
         self.order_model = OrderModel
         self.product_model = ProductModel
-
-    def get_existing_product(self, session, product_id):
-        try:
-            product = session.query(self.product_model).get(product_id)
-            if not product:
-                return None, {"success": False, "message": "Producto no encontrado"}, 404
-            return product, None, None
-        except Exception as e:
-            logging.error(f"Error in get_existing_product: {str(e)}")
-            return None, {"success": False, "message": "Error interno del servidor"}, 500

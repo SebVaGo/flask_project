@@ -102,7 +102,6 @@
 <script>
   var isEdit = {% if order %}true{% else %}false{% endif %};
   var orderId = {% if order %}{{ order.orden_id }}{% else %}null{% endif %};
-  var userId = {% if order %}{{ order.usuario_id }}{% else %}{{ current_user.id or 0 }}{% endif %};
-</script>
+  var userId = {% if order %}{{ order.usuario_id }}{% else %}{% if current_user is defined %}{{ current_user.id or 0 }}{% else %}0{% endif %}{% endif %};</script>
 <script src="{{ url_for('static', filename='js/order_form.js') }}"></script>
 {% endblock %}
