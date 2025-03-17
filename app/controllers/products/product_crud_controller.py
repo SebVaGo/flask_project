@@ -1,11 +1,14 @@
 import logging
-from flask import request, flash
+from flask import request, flash, redirect, url_for
 from app.utils.forms.csrf_form import CSRFForm
 from app.utils.forms.product_form import ProductForm
 from app.controllers.products.base_product_controller import BaseProductController
 
 
 class ProductCrudController(BaseProductController):
+
+    def __init__(self):
+        super().__init__()
 
     def list_products(self):
         try:
@@ -18,33 +21,34 @@ class ProductCrudController(BaseProductController):
             return self.render_list(products=[], form=CSRFForm())
 
     def create_product(self):
-        """Crea un nuevo producto."""
         try:
-            form = ProductForm(request.form)
+            form = ProductForm()
             categories = self.category_service.get_all_categories()
-            form.categoria_id.choices = [(c.id, c.nombre) for c in categories]
-
+            form.categoria_id.choices = [(c["id"], c["nombre"]) for c in categories]
+            
             if request.method == "GET":
                 return self.render_product_form(form)
-
+            
             errors = self.validate_form(form)
             if errors:
                 flash("Errores de validación", "danger")
                 return self.json_response(False, "Errores de validación", errors=errors, status=400)
-
+            
             data = {
                 "nombre": form.nombre.data,
                 "categoria_id": form.categoria_id.data,
                 "precio": form.precio.data,
             }
-
+            
             result, status_code = self.product_service.save_product(data)
+            
             if not result["success"]:
                 flash("Producto creado correctamente.", "success")
                 return self.render_product_form(form)
-
+            
             flash(result["message"], "success")
             return self.json_response(result["success"], result["message"], status=status_code)
+        
         except Exception as e:
             logging.error(f"Error en create_product: {str(e)}")
             flash("Ocurrió un error al crear el producto.", "danger")
@@ -53,12 +57,19 @@ class ProductCrudController(BaseProductController):
     def edit_product(self, product_id):
         try:
             product = self.product_service.get_product_by_id(product_id)
-            if not product:
-                return self.json_response(False, "Producto no encontrado", status=404)
-
-            form = ProductForm(obj=product)
+        except Exception as e:
+            logging.error(f"Error in edit_product: {str(e)}")
+            flash("Ocurrió un error al cargar el producto.", "danger")
+            return self.json_response(False, "Error interno del servidor", status=500)
+        
+        if not product:
+            flash("Producto no encontrado", "danger")
+            return redirect(url_for("admin.list_products"))
+        
+        try:
+            form = ProductForm(data=product)
             categories = self.category_service.get_all_categories()
-            form.categoria_id.choices = [(c.id, c.nombre) for c in categories]
+            form.categoria_id.choices = [(c["id"], c["nombre"]) for c in categories]
 
             if request.method == "GET":
                 return self.render_product_form(form, product=product)
@@ -73,18 +84,19 @@ class ProductCrudController(BaseProductController):
                 "categoria_id": form.categoria_id.data,
                 "precio": form.precio.data,
             }
-
+            
             result, status_code = self.product_service.save_product(data, product_id)
             if result["success"]:
                 flash("Producto actualizado correctamente.", "success")
             else:
                 flash(result["message"], "danger")
             return self.json_response(result["success"], result["message"], status=status_code)
+        
         except Exception as e:
             logging.error(f"Error en edit_product: {str(e)}")
             flash("Ocurrió un error actualizando el producto.", "danger")
             return self.json_response(False, "Error interno del servidor", status=500)
-
+        
     def delete_product(self, product_id):
         try:
             result = self.product_service.delete_product(product_id)

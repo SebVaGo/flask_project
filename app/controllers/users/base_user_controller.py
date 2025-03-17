@@ -9,10 +9,6 @@ class BaseUserController():
         self.user_service = UserService()
         self.client_type_service = ClientTypeService()
 
-    def get_client_types(self):
-        client_types = self.client_type_service.get_all_types()
-        return [(tipo.id, tipo.nombre) for tipo in client_types]
-
     def render_user_form(self, form, template="user_form.html", user=None):
         return render_template(template, form=form, user=user)
 

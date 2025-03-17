@@ -1,5 +1,5 @@
 import logging
-from flask import request, flash
+from flask import request, flash, redirect, url_for
 from app.utils.forms.user_form import UserForm, UserUpdateForm
 from app.utils.forms.csrf_form import CSRFForm
 from app.controllers.users.base_user_controller import BaseUserController
@@ -23,7 +23,7 @@ class UserCrudController(BaseUserController):
     def create_user(self):
         try:
             form = UserForm()
-            form.tipo_cliente_id.choices = self.get_client_types()
+            form.tipo_cliente_id.choices = self.client_type_service.get_client_types()
 
             if request.method == "GET":
                 return self.render_user_form(form)
@@ -54,11 +54,18 @@ class UserCrudController(BaseUserController):
     def edit_user(self, user_id):
         try:
             user = self.user_service.get_user_by_id(user_id)
-            if not user:
-                return self.json_response(False, "Usuario no encontrado.", status=404)
+        except Exception as e:
+            logging.error(f"Error in edit_user: {str(e)}")
+            flash("Ocurrió un error al cargar el usuario.", "danger")
+            return self.json_response(False, "Error interno del servidor", status=500)
+        
+        if not user:
+            flash("El usuario no existe.", "danger")
+            return redirect(url_for("user.get_users"), code=302)
 
-            form = UserUpdateForm(obj=user)
-            form.tipo_cliente_id.choices = self.get_client_types()
+        try:
+            form = UserUpdateForm(data=user)
+            form.tipo_cliente_id.choices = self.client_type_service.get_client_types()
 
             if request.method == "GET":
                 return self.render_user_form(form, user=user)

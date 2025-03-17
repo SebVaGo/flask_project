@@ -1,5 +1,5 @@
 import logging
-from flask import request, flash, render_template
+from flask import request, flash, redirect, url_for
 from app.utils.forms.csrf_form import CSRFForm
 from app.utils.forms.order_form import OrderForm
 from app.controllers.orders.base_order_controller import BaseOrderController
@@ -46,21 +46,27 @@ class OrderCrudController(BaseOrderController):
         if request.method == "GET":
             try:
                 order = self.order_query_service.get_order_by_id(orden_id)
-                form = CSRFForm()
-                productos_disponibles = self.product_query_service.get_all_products()
-                return self.render_order_form(
-                    order=order,
-                    form=form,
-                    productos_disponibles=productos_disponibles
-                )
             except Exception as e:
-                logging.error(f"Error en GET de edit_order: {str(e)}")
+                logging.error(f"Error al obtener la orden: {str(e)}")
                 flash("Ocurrió un error al cargar la orden.", "danger")
                 return self.render_order_form(
                     order=None,
                     form=CSRFForm(),
-                    productos_disponibles=[]
+                    productos_disponibles=[],
                 )
+            
+            if not order:
+                flash("Orden no encontrada", "danger")
+                return redirect(url_for("order.list_orders"))
+            
+            form = CSRFForm()
+            productos_disponibles = self.product_query_service.get_all_products()
+            return self.render_order_form(
+                order=order,
+                form=form,
+                productos_disponibles=productos_disponibles
+            )
+        
         else:
             try:
                 data = request.get_json()

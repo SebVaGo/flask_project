@@ -3,6 +3,7 @@ from app.config import db
 from app.services.users.base_user_service import BaseUserService
 from app.services.users.client_type_service import ClientTypeService
 from app.services.users.password_service import PasswordService
+from app.utils.db_session_manager import AltDBSessionManager
 
 
 class UserSaveService(BaseUserService):
@@ -26,47 +27,44 @@ class UserSaveService(BaseUserService):
             raise Exception("Error al validar el correo electrónico.")
 
     def save_user(self, data, user_id=None):
-        session = db.session
         try:
-            is_update = user_id is not None
+            with AltDBSessionManager() as session:
+                is_update = user_id is not None
 
-            # 1. Obtener (o validar) usuario si es actualización
-            usuario, error, status_code = self._get_user_if_update(session, user_id)
-            if error:
-                return error, status_code
+                # 1. Obtener (o validar) usuario si es actualización
+                usuario, error, status_code = self._get_user_if_update(session, user_id)
+                if error:
+                    return error, status_code
 
-            # 2. Validar email y tipo de cliente
-            error, status_code = self._check_email_and_client(session, data, user_id)
-            if error:
-                return error, status_code
+                # 2. Validar email y tipo de cliente
+                error, status_code = self._check_email_and_client(session, data, user_id)
+                if error:
+                    return error, status_code
 
-            # 3. Extraer la contraseña según sea update o create
-            nueva_password = self.password_service.extract_password(data, is_update)
+                # 3. Extraer la contraseña según sea update o create
+                nueva_password = self.password_service.extract_password(data, is_update)
 
-            # 4. Actualizar usuario existente o crear uno nuevo
-            if is_update:
-                self._update_existing_user(usuario, data)
-            else:
-                usuario = self._create_new_user(session, data)
+                # 4. Actualizar usuario existente o crear uno nuevo
+                if is_update:
+                    self._update_existing_user(session, usuario, data)
+                else:
+                    usuario = self._create_new_user(session, data)
 
-            # 5. Manejar contraseña
-            if nueva_password:
-                self._update_password(session, usuario, nueva_password, is_update)
+                # 5. Manejar contraseña
+                if nueva_password:
+                    self._update_password(session, usuario, nueva_password, is_update)
 
-            session.commit()
-            mensaje = (
-                "Usuario actualizado correctamente."
-                if is_update
-                else "Usuario registrado exitosamente"
-            )
-            return {"success": True, "message": mensaje}, 200 if is_update else 201
+                # No es necesario llamar a commit aquí, AltDBSessionManager lo hará automáticamente
+                mensaje = (
+                    "Usuario actualizado correctamente."
+                    if is_update
+                    else "Usuario registrado exitosamente"
+                )
+                return {"success": True, "message": mensaje}, 200 if is_update else 201
 
         except Exception as e:
-            session.rollback()
             logging.error(f"Error en operación de usuario: {str(e)}")
             return {"success": False, "message": "Error interno del servidor"}, 500
-        finally:
-            session.close()
 
     def _get_user_if_update(self, session, user_id):
         try:
@@ -86,7 +84,8 @@ class UserSaveService(BaseUserService):
             if email_error:
                 return {"success": False, "message": email_error}, 400
 
-            client_error = self.client_type_service.validate_client_type(data)
+            # Usamos la nueva función que no requiere session
+            client_error, client = self.client_type_service.validate_and_get_client_type(data, session)
             if client_error:
                 return {"success": False, "message": client_error}, 400
 
@@ -95,18 +94,28 @@ class UserSaveService(BaseUserService):
             logging.error(f"Error in _check_email_and_client: {str(e)}")
             raise Exception("Error al validar email y tipo de cliente.")
 
-    def _update_existing_user(self, usuario, data):
+    def _update_existing_user(self, session, usuario, data):
         try:
+            # Reatachamos el objeto para asegurarnos de que esté ligado a la sesión
+            usuario = session.merge(usuario)
             for key, value in data.items():
-                if hasattr(usuario, key) and value is not None:
+                if key not in ['id', 'csrf_token', 'submit', 'password', 'confirm_password'] and value is not None:
                     setattr(usuario, key, value)
+            return usuario
         except Exception as e:
             logging.error(f"Error in _update_existing_user: {str(e)}")
             raise Exception("Error al actualizar el usuario existente.")
 
+
     def _create_new_user(self, session, data):
         try:
-            usuario = self.user_model(**data, status="activo")
+            # Filtrar solo las claves que son atributos válidos del modelo
+            valid_data = {}
+            for key, value in data.items():
+                if key not in ['csrf_token', 'submit', 'password', 'confirm_password'] and hasattr(self.user_model, key):
+                    valid_data[key] = value
+                    
+            usuario = self.user_model(**valid_data, status="activo")
             session.add(usuario)
             session.flush()
             return usuario
