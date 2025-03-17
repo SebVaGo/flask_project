@@ -39,7 +39,6 @@ class UserService(BaseUserService):
             return None
     
     def _user_to_dict(self, user):
-        """Convierte un objeto usuario en un diccionario de forma directa."""
         user_dict = {}
         columns = ['id', 'primer_nombre', 'segundo_nombre', 'apellido_paterno', 
                    'apellido_materno', 'correo', 'telefono', 'fecha_creacion', 

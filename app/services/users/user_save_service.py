@@ -54,7 +54,6 @@ class UserSaveService(BaseUserService):
                 if nueva_password:
                     self._update_password(session, usuario, nueva_password, is_update)
 
-                # No es necesario llamar a commit aquí, AltDBSessionManager lo hará automáticamente
                 mensaje = (
                     "Usuario actualizado correctamente."
                     if is_update
@@ -84,7 +83,6 @@ class UserSaveService(BaseUserService):
             if email_error:
                 return {"success": False, "message": email_error}, 400
 
-            # Usamos la nueva función que no requiere session
             client_error, client = self.client_type_service.validate_and_get_client_type(data, session)
             if client_error:
                 return {"success": False, "message": client_error}, 400
@@ -109,7 +107,6 @@ class UserSaveService(BaseUserService):
 
     def _create_new_user(self, session, data):
         try:
-            # Filtrar solo las claves que son atributos válidos del modelo
             valid_data = {}
             for key, value in data.items():
                 if key not in ['csrf_token', 'submit', 'password', 'confirm_password'] and hasattr(self.user_model, key):

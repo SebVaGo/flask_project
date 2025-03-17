@@ -14,7 +14,6 @@ class OrderManagementService(BaseOrderService):
         session = db.session
         try:
             if producto_id is not None:
-                # Eliminar un producto específico de la orden.
                 order_item = self.order_query_service.get_order_item(
                     session, orden_id, producto_id
                 )
