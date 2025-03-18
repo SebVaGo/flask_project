@@ -1,15 +1,12 @@
 from flask import make_response, url_for
 from werkzeug.security import check_password_hash
+from flask_login import login_user, logout_user
 
 from app.models.user_model import UserModel
 from app.models.password_model import PasswordModel
-from app.utils.token_helper import TokenHelper
-from app.utils.cookie_helper import CookieHelper
 from app.utils.db_session_manager import DBSessionManager
 
-
 class AuthService:
-
     def __init__(self):
         self.db_manager = DBSessionManager()
         self.user_model = UserModel
@@ -23,13 +20,15 @@ class AuthService:
         user_password = self.password_model.query.filter_by(id_usuario=user.id).first()
         if not user_password or not check_password_hash(user_password.password_hash, password):
             return {"success": False, "message": "Credenciales incorrectas"}
-
-        token = TokenHelper.generate_jwt(user.id, user.tipo_cliente_id)
-        return {"success": True, "user_id": user.id, "token": token, "user_type": user.tipo_cliente_id}
-
-    def create_login_response(self, token):
-        response = make_response({"success": True, "message": "Login exitoso"})
-        CookieHelper.set_cookie(response, "access_token", token)
-        return response
-
-
+        
+        login_user(user)
+        
+        return {
+            "success": True, 
+            "user_id": user.id,
+            "user_type": user.tipo_cliente_id
+        }
+    
+    def logout(self):
+        logout_user()
+        return {"success": True, "message": "Sesión cerrada"}

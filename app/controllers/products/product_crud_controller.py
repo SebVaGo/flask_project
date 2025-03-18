@@ -9,7 +9,7 @@ class ProductCrudController(BaseProductController):
 
     def __init__(self):
         super().__init__()
-
+    
     def list_products(self):
         try:
             products = self.product_service.get_all_products()

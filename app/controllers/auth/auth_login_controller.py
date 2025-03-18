@@ -1,9 +1,9 @@
 from flask import request, flash
+from flask_login import login_required
 from app.utils.forms.login_form import LoginForm
 from app.controllers.auth.base_auth_controller import BaseAuthController
 
 class AuthLoginController(BaseAuthController):
-    """Maneja el inicio de sesión."""
 
     def login(self):
         if request.method == "GET":
@@ -35,3 +35,8 @@ class AuthLoginController(BaseAuthController):
             }, status=200)
 
         return self.json_response(False, resultado["message"], status=401)
+    
+    def logout(self):
+        self.auth_service.logout()
+        flash("Sesión cerrada", "success")
+        return self.render_login_form(LoginForm())

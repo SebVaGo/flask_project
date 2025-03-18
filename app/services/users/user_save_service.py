@@ -112,7 +112,7 @@ class UserSaveService(BaseUserService):
                 if key not in ['csrf_token', 'submit', 'password', 'confirm_password'] and hasattr(self.user_model, key):
                     valid_data[key] = value
                     
-            usuario = self.user_model(**valid_data, status="activo")
+            usuario = self.user_model(**valid_data, status="inactivo")
             session.add(usuario)
             session.flush()
             return usuario
